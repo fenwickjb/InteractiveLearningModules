@@ -28,7 +28,13 @@ public class DrawableString {
 
 	/** y is centered at the middle of the string */
 	private float y;
+	
 	private boolean bShouldShow = true;
+	private float scaleX = 1;
+	private float scaleY = 1;
+	
+	private Align horrizontalAlign = Align.CENTER;
+	private Align verticalAlign = Align.CENTER;
 
 	public DrawableString(String text) {
 		// bmFont = new BitmapFont(Gdx.files.internal("prada.fnt"));
@@ -55,11 +61,44 @@ public class DrawableString {
 	public void draw(SpriteBatch batch) {
 		if(bShouldShow)
 		{
+			bmFont.getData().setScale(this.scaleX, this.scaleY);
+			
+			String text;
+			float halfWidth = gl.width / 2;
+			float halfHeight = gl.height / 2;
+			
 			if (!currentlyAnimating) {
-				bmFont.draw(batch, getText(), x - gl.width / 2, y + gl.height / 2);
+				//bmFont.draw(batch, getText(), x - gl.width / 2, y + gl.height / 2);
+				text = getText();
 			} else {
-				bmFont.draw(batch, buildingString.toString(), x - gl.width / 2, y + gl.height / 2);
+				//bmFont.draw(batch, buildingString.toString(), x - gl.width / 2, y + gl.height / 2);
+				text=buildingString.toString();
 			}
+			
+			//account for scaling
+			halfWidth *= scaleX;
+			halfHeight *= scaleY;
+			
+			float xComponent = 0, yComponent = 0;
+			
+			if(horrizontalAlign == Align.CENTER) {
+				xComponent = x - halfWidth;
+			} else if (horrizontalAlign == Align.LEFT) {
+				xComponent = x;
+			} else if (horrizontalAlign == Align.RIGHT) {
+				xComponent = x - 2 * halfWidth;
+			}
+			
+			if(verticalAlign == Align.CENTER) {
+				yComponent = y + halfHeight;
+			}
+			
+			
+			//render
+			bmFont.draw(batch, text, xComponent, yComponent);
+			
+			//restore non-scaled data.
+			bmFont.getData().setScale(1, 1);
 		}
 
 		// draw accounting for scale (untested)
@@ -106,11 +145,11 @@ public class DrawableString {
 	}
 
 	public float width() {
-		return gl.width * bmFont.getScaleX();
+		return gl.width * bmFont.getScaleX() * scaleX;
 	}
 
 	public float height() {
-		return gl.height * bmFont.getScaleY();
+		return gl.height * bmFont.getScaleY() * scaleY;
 	}
 
 	public float getY() {
@@ -217,5 +256,33 @@ public class DrawableString {
 	public void setVisible(boolean inShouldShow)
 	{
 		bShouldShow  = inShouldShow;
+	}
+	
+	public void setScale(float x, float y) {
+		this.scaleX = x != 0 ? x : 1;
+		this.scaleY = y != 0 ? y : 1;;
+		
+	}
+
+	public void setLeftAlign() {
+		horrizontalAlign = Align.LEFT;
+	}
+	
+	public void setRightAlign() {
+		horrizontalAlign = Align.RIGHT;
+	}
+	
+	public enum Align{
+		LEFT,
+		RIGHT,
+		CENTER
+	}
+
+	public int length() {
+		return text.length();
+	}
+
+	public void append(String toAppend) {
+		setText(this.getText() + toAppend);
 	}
 }
