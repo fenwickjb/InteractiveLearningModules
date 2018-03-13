@@ -54,6 +54,7 @@ public class LongDivisionEntity extends Entity {
 	
 	private ArrayList<DrawableString> subNumbers;
 	private ArrayList<DrawableString> subResults;
+	private ArrayList<DrawableString> subNumbersExtensions;
 	private ArrayList<Integer> subLastAnswer;
 	private ArrayList<Integer> subAnswerLength;
 	private ArrayList<Float> subOffsets;
@@ -90,6 +91,7 @@ public class LongDivisionEntity extends Entity {
 		subOffsets = new ArrayList<Float>();
 		horrizontal1Points = new ArrayList<Vector2>();
 		horrizontal2Points = new ArrayList<Vector2>();
+		subNumbersExtensions = new ArrayList<DrawableString>();
 		
 		this.timer = new Timer();
 		timer.setTimer(cursorTimerKey, cursorDelay);
@@ -126,6 +128,7 @@ public class LongDivisionEntity extends Entity {
 		positionUserTyped();
 		positionSubtractionResults();
 		positionHorrizontalBars();
+		positionNumberExtensions();
 	}
 
 	private void positionCursor() {
@@ -201,7 +204,18 @@ public class LongDivisionEntity extends Entity {
 		
 	}
 
-
+	private void positionNumberExtensions() {
+		for(int i = 0; i < subNumbersExtensions.size(); ++i) {
+			DrawableString adjacentResult = subResults.get(i);
+			DrawableString extension = subNumbersExtensions.get(i);
+			
+			float x = adjacentResult.getX();
+			float y = adjacentResult.getY();
+			extension.setLeftAlign();
+			extension.setXY(x, y);
+		}
+	}
+	
 	private float getHeightTolerenace() {
 		return 0.2f * numeratorDS.height();
 	}
@@ -217,6 +231,7 @@ public class LongDivisionEntity extends Entity {
 		denominatorDS.draw(batch);
 		answerDS.draw(batch);
 		drawSubtractionElements(batch);
+		drawNumberExtensions(batch);
 		userTypedDS.draw(batch);
 		
 		if(shouldDrawCursor()) {
@@ -255,6 +270,12 @@ public class LongDivisionEntity extends Entity {
 		for(int i = 0; i < subNumbers.size(); ++i) {
 			subNumbers.get(i).draw(batch);
 			subResults.get(i).draw(batch);
+		}
+	}
+	
+	private void drawNumberExtensions(SpriteBatch batch) {
+		for(int i = 0; i < subNumbersExtensions.size(); ++i) {
+			subNumbersExtensions.get(i).draw(batch);
 		}
 	}
 
@@ -374,6 +395,8 @@ public class LongDivisionEntity extends Entity {
 		if(positionIdx != lastPositionIdx) {
 			char newDigit = numeratorStr.charAt(positionIdx);
 			miniNumerator.append(newDigit);
+			if(subNumbersExtensions.size() > 0)
+		 		appendTextToDS(newDigit+ "", subNumbersExtensions.get(subNumbersExtensions.size() -1));
 			lastPositionIdx = positionIdx;
 		}
 		
@@ -388,7 +411,7 @@ public class LongDivisionEntity extends Entity {
 				valueToSubtractFrom.append(miniNumerator.toString());
 			 	miniNumerator.setLength(0);
 			 	positionIdx++;
-			 	appendTextToAnswer(lastDivisionResult + "");
+			 	appendTextToDS(lastDivisionResult + "", answerDS);
 			 	clearUserTyped();
 			 	transitionTo(State.PICK_SUB_NUM, lastDivisionResult);
 			} else {
@@ -398,7 +421,7 @@ public class LongDivisionEntity extends Entity {
 		else {
 			if(checkIfUserTyped(0))
 			{
-				appendTextToAnswer("" + 0);
+				appendTextToDS("" + 0, answerDS);
 				positionIdx++;
 				clearUserTyped();
 			} else {
@@ -481,13 +504,20 @@ public class LongDivisionEntity extends Entity {
 	}
 
 	private void preparePickTopNum() {
+		miniNumerator.setLength(0);
+		miniNumerator.append(valueToSubtractFrom.toString());
+		
+		String lastResult = subResults.get(subResults.size() - 1).getText();
+		DrawableString extension = new DrawableString(miniNumerator.toString().substring(lastResult.length()));
+		subNumbersExtensions.add(extension);
+		
 		clearUserTyped();
 		positionCursor();
 		positionUserTyped();
-		miniNumerator.setLength(0);
-		miniNumerator.append(valueToSubtractFrom.toString());
+		positionNumberExtensions();
+		
+		
 	}
-
 
 	private void preparePickSubNum(int resultOfLastPickTop) {
 		subNumbers.add(new DrawableString(""));
@@ -544,12 +574,13 @@ public class LongDivisionEntity extends Entity {
 		answerDS.setText(answer);
 	}
 	
-	private void appendTextToAnswer(String text) {
-		String answerText = answerDS.getText();
-		answerText += text;
-		answerDS.setText(answerText);
+	private void appendTextToDS(String text, DrawableString targetDS) {
+		String textToAmend = targetDS.getText();
+		textToAmend += text;
+		targetDS.setText(textToAmend);
 		positionCursor();
 	}
+	
 	
 	private String getUserText() {
 		return userTypedDS.getText();
@@ -599,10 +630,15 @@ public class LongDivisionEntity extends Entity {
 			subNumbers.get(i).setScale(scaleX, scaleY);
 			subResults.get(i).setScale(scaleX, scaleY);
 		}
+		for(int i = 0; i < subNumbersExtensions.size(); ++i) {
+			subNumbersExtensions.get(i).setScale(scaleX, scaleY);
+		}
 		correctSubElementsOffsetsForScale();
 		positionElements();
 		positionCursor();
 		positionUserTyped();
+		positionSubtractionResults();
+		positionNumberExtensions();
 	}
 	
 	public enum State {
