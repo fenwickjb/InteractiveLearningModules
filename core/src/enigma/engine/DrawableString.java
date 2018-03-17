@@ -261,7 +261,6 @@ public class DrawableString {
 	public void setScale(float x, float y) {
 		this.scaleX = x != 0 ? x : 1;
 		this.scaleY = y != 0 ? y : 1;;
-		
 	}
 
 	public void setLeftAlign() {
@@ -272,10 +271,9 @@ public class DrawableString {
 		horrizontalAlign = Align.RIGHT;
 	}
 	
-	public enum Align{
-		LEFT,
-		RIGHT,
-		CENTER
+	public void setCenterAlign() {
+		horrizontalAlign = Align.CENTER;
+		
 	}
 
 	public int length() {
@@ -285,4 +283,11 @@ public class DrawableString {
 	public void append(String toAppend) {
 		setText(this.getText() + toAppend);
 	}
+	
+	public enum Align{
+		LEFT,
+		RIGHT,
+		CENTER
+	}
+
 }

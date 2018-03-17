@@ -3,10 +3,11 @@ package enigma.engine;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 
 import enigma.engine.baseconversion.BaseConversionModule;
+import enigma.engine.basicmath.LongDivisionModule;
+import enigma.engine.basicmath.MultiplicationModule;
 import enigma.engine.floatingpoint.MasterFloatingPointModule;
 import enigma.engine.fsm.MasterFSMModule;
 import enigma.engine.regex.MasterRegularExpressionModule;
-import enigma.engine.sorting.ISortInstructionModule;
 import enigma.engine.sorting.QSortInstructionModule;
 import enigma.engine.sorting.QSortPracticeModule;
 import enigma.engine.sorting.SelectSortInstructionModule;
@@ -24,13 +25,15 @@ enum module
 	SELECTION_SORT_INSTRUCTION,
 	SELECTION_SORT_PRACTICE,
 	BASE_CONVERSION,
+	LONG_DIVISION_REMAINDER,
+	MULTIPLICATION,
 	BINARY	
 }
 //@formatter:on
 
 public class GameMainModule extends CourseModule {
 
-	public static final module compileTimeModuleSetting = module.BASE_CONVERSION;
+	public static final module compileTimeModuleSetting = module.LONG_DIVISION_REMAINDER;
 	
 	public GameMainModule(OrthographicCamera camera) {
 		super(camera);
@@ -63,8 +66,13 @@ public class GameMainModule extends CourseModule {
 			break;
 		case BASE_CONVERSION:
 			subModules.add(new BaseConversionModule(camera));
-
 			break;
+		case LONG_DIVISION_REMAINDER:
+			subModules.add(new LongDivisionModule(camera));
+			break;
+		case MULTIPLICATION:
+			subModules.add(new MultiplicationModule(camera));
+			break;	
 		case INSERT_SORT_PRACTICE:
 			break;
 		case BINARY:

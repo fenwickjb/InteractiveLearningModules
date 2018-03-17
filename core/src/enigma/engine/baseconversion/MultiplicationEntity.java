@@ -10,19 +10,28 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
 import com.badlogic.gdx.math.Vector2;
 
+import enigma.engine.DrawableCharBuffer;
 import enigma.engine.DrawableString;
 import enigma.engine.Entity;
 import enigma.engine.TextureLookup;
 import enigma.engine.Timer;
 
-public class LongDivisionEntity extends Entity {
-	private DrawableString denominatorDS;
-	private DrawableString numeratorDS;
-	private DrawableString answerDS;
+@SuppressWarnings("unused")
+public class MultiplicationEntity extends Entity {
+	private DrawableCharBuffer multipliconDS;
+	private DrawableCharBuffer numberDS;
+	//private DrawableString answerDS;
 	private DrawableString remainderDS;
+	private DrawableString multSymbolDS;
+	
+	private ArrayList<DrawableCharBuffer> answerRows = new ArrayList<DrawableCharBuffer>();
+	
+	
+	private char multSymbol = 'x';
+	//private char multSymbol = '*';
 
-	protected float scaleX;
-	protected float scaleY;
+	private float scaleX;
+	private float scaleY;
 	private float additionalScaleFactor = 1f;
 
 	private DrawableString cursorDS;
@@ -32,8 +41,8 @@ public class LongDivisionEntity extends Entity {
 	private String cursorTimerKey = "C";
 	private long cursorDelay = 400;
 
-	protected int numerator;
-	protected int denominator;
+	private float number;
+	private float multiplicon;
 	private int remainder = 0;
 	private float x;
 	private float y;
@@ -44,19 +53,16 @@ public class LongDivisionEntity extends Entity {
 
 	// processing numerator fields
 	private StringBuilder miniNumerator = new StringBuilder();
-	private String numeratorStr;
+	private String numberStr;
 	private int positionIdx;
 
-	//private int base = 10;
-
 	// compose the division bar
-	private Vector2 btmPoint = new Vector2();
-	private Vector2 topLeftPoint = new Vector2();
-	private Vector2 topRightPoint = new Vector2();
-	private int lastDivisionResult;
+	private Vector2 btmPointRight = new Vector2();
+	private Vector2 bottomLeftPoint = new Vector2();
+	private float lastDivisionResult;
 
-	private ArrayList<DrawableString> subNumbers;
-	private ArrayList<DrawableString> subResults;
+	private ArrayList<DrawableString> aboveAdditionNumbers;
+	private ArrayList<DrawableString> columnResults;
 	private ArrayList<DrawableString> subNumbersExtensions;
 	private ArrayList<Integer> subLastAnswer;
 	private ArrayList<Integer> subAnswerLength;
@@ -77,64 +83,99 @@ public class LongDivisionEntity extends Entity {
 	private boolean drawRemainder = true;
 	private boolean makeLastResultColored = false;
 	
+	
 
-	public LongDivisionEntity(int numerator, int denominator, float x, float y) {
-		this.denominatorDS = new DrawableString("" + denominator);
-		this.numeratorDS = new DrawableString("" + numerator);
-		this.remainderDS = new DrawableString("");
-		this.numerator = numerator;
-		this.numeratorStr = this.numeratorDS.getText();
-		this.denominator = denominator;
-		this.answerDS = new DrawableString("");
-		this.answerDS.setLeftAlign();
+	public MultiplicationEntity(float number, float multiplicon, float x, float y) {
+		this.multipliconDS = new DrawableCharBuffer(filterZeros("" + multiplicon));
+		this.numberDS = new DrawableCharBuffer("" + number);
+		
+		this.number = number;
+		this.multiplicon = multiplicon;
+		
+		this.multSymbolDS = new DrawableString("" + multSymbol);
+		this.multSymbolDS.setRightAlign();
+		
+		this.numberStr = this.numberDS.getText();
+		
 		this.cursorDS = new DrawableString("|");
 		this.sizeSourceDS = new DrawableString("3");
 		
 		this.x = x;
 		this.y = y;
-		this.state = State.PICK_TOP_NUM;
+		this.state = State.MULT_ELEMENT;
 
-		subNumbers = new ArrayList<DrawableString>();
-		subResults = new ArrayList<DrawableString>();
-		subLastAnswer = new ArrayList<Integer>();
-		subAnswerLength = new ArrayList<Integer>();
-		subOffsets = new ArrayList<Float>();
+		aboveAdditionNumbers = new ArrayList<DrawableString>();
+		columnResults = new ArrayList<DrawableString>();
+
 		horrizontal1Points = new ArrayList<Vector2>();
 		horrizontal2Points = new ArrayList<Vector2>();
-		subNumbersExtensions = new ArrayList<DrawableString>();
 		
-		this.remainderDS.setScale(additionalScaleFactor, additionalScaleFactor);
-		this.remainderDS.makeRed();
-
 		this.timer = new Timer();
 		timer.setTimer(cursorTimerKey, cursorDelay);
 
 		userTypedDS = new DrawableString("");
-
+		answerRows.add(new DrawableCharBuffer(""));
+		
+		//ELEMENT TO DELETE
+		//this.answerDS = new DrawableString("");
+		//this.answerDS.setRightAlign();
+		this.remainderDS = new DrawableString("");
+		subLastAnswer = new ArrayList<Integer>();
+		subAnswerLength = new ArrayList<Integer>();
+		subOffsets = new ArrayList<Float>();
+		subNumbersExtensions = new ArrayList<DrawableString>();
+		this.remainderDS.setScale(additionalScaleFactor, additionalScaleFactor);
+		this.remainderDS.makeRed();
+		// STOP DELETING
+		
 		positionElements();
 	}
 
-	private void positionElements() {
-		numeratorDS.setXY(x, y);
+	private String filterZeros(String number) {
+		String[] split = number.split("\\.");
+		if(split.length == 1) {
+			return number;
+		} else if (split.length == 2) {
+			int decimal = Integer.parseInt(split[1]);
+			if(decimal == 0) {
+				return split[0];
+			} else {
+				return number;
+			}
+		} else
+		{
+			return number;
+		}
+	}
 
-		float halfNumerWidth = numeratorDS.width() / 2;
-		float halfDenomWidth = denominatorDS.width() / 2;
-		float toleranceWidth = getWidthTolerance();
+	private void positionElements() {
+		calculateSpaceOffsets();
+		numberDS.setXY(x, y);
+
+		float halfNumerWidth = numberDS.width() / 2;
 		float toleranceHeight = getHeightTolerenace();
 
-		denominatorDS.setXY(x - (halfDenomWidth + halfNumerWidth + toleranceWidth), y);
+		multipliconDS.setRightAlign();
+		multipliconDS.setXY(x + halfNumerWidth  , y - (numberDS.height() + toleranceHeight));
+		
+		float symbolOffset = 4 * spaceOffset;
+		multSymbolDS.setXY(multipliconDS.getX() - multipliconDS.width() -  symbolOffset, multipliconDS.getY());
 
-		btmPoint.x = denominatorDS.getX() + halfDenomWidth + 0.5f * toleranceWidth;
-		btmPoint.y = denominatorDS.getY() - 0.5f * denominatorDS.height() - toleranceHeight;
+		btmPointRight.x = multipliconDS.getX();
+		btmPointRight.y = multipliconDS.getY() - 0.5f * multipliconDS.height() - toleranceHeight;
 
-		topLeftPoint.x = btmPoint.x;
-		topLeftPoint.y = btmPoint.y + denominatorDS.height();
-		topLeftPoint.y += 2 * toleranceHeight; // move bar slightly above the numbers.
+		float bottomWidth = multipliconDS.width() + multSymbolDS.width() + symbolOffset;
+		bottomLeftPoint.x = btmPointRight.x - Math.max(numberDS.width(), bottomWidth);
+		bottomLeftPoint.y = btmPointRight.y;
 
-		topRightPoint.y = topLeftPoint.y;
-		topRightPoint.x = topLeftPoint.x + 0.5f * toleranceWidth + numeratorDS.width();
-
-		answerDS.setXY(x - numeratorDS.width() / 2, y + numeratorDS.height() + 2 * toleranceHeight);
+		//answerDS.setXY(x - numberDS.width() / 2, y - 2*numberDS.height() - 2 * toleranceHeight);
+		float firstRowY = y - 2*numberDS.height() - 2 * toleranceHeight;
+		float rowX = multipliconDS.getX() - spaceOffset;
+		for(int i = 0; i < answerRows.size(); ++i) {
+			DrawableCharBuffer answer = answerRows.get(i); 
+			
+			answer.setXY(rowX, firstRowY);
+		}
 
 		calculateSpaceOffsets();
 		positionCursor();
@@ -142,29 +183,30 @@ public class LongDivisionEntity extends Entity {
 		positionSubtractionResults();
 		positionHorrizontalBars();
 		positionNumberExtensions();
-		positionRemainder();
 	}
 
 	private void positionCursor() {
 		switch (state) {
-		case PICK_TOP_NUM: {
+		case MULT_ELEMENT: {
+			DrawableCharBuffer answerDS = answerRows.get(answerRows.size() - 1);
+			
 			float x = answerDS.getX();
 			float y = answerDS.getY();
 			float ansWidth = answerDS.width();
 			float userWidth = userTypedDS.width();
 			//cursorDS.setXY(x + extraFactor * (ansWidth + userWidth), y);
-			cursorDS.setXY(x + ansWidth + userWidth + spaceOffset, y);
+			cursorDS.setXY(x + spaceOffset, y);
 			break;
 		}
-		case PICK_SUB_NUM: {
-			DrawableString lastSubNumber = subNumbers.get(subNumbers.size() - 1);
+		case WRITE_CARRY: {
+			DrawableString lastSubNumber = aboveAdditionNumbers.get(aboveAdditionNumbers.size() - 1);
 			float x = lastSubNumber.getX();
 			float y = lastSubNumber.getY();
 			cursorDS.setXY(x, y);
 			break;
 		}
-		case WRITE_SUB_RESULT: {
-			DrawableString lastResultNumber = subResults.get(subResults.size() - 1);
+		case SUM_ROWS: {
+			DrawableString lastResultNumber = columnResults.get(columnResults.size() - 1);
 			float x = lastResultNumber.getX();
 			float y = lastResultNumber.getY();
 			cursorDS.setXY(x, y);
@@ -175,20 +217,22 @@ public class LongDivisionEntity extends Entity {
 
 	private void positionUserTyped() {
 		switch (state) {
-		case PICK_TOP_NUM: {
+		case MULT_ELEMENT: {
+			DrawableCharBuffer answerDS = answerRows.get(answerRows.size() - 1);
 			float x = answerDS.getX();
 			float y = answerDS.getY();
 			float width = answerDS.width();
-			userTypedDS.setLeftAlign();
+			userTypedDS.setRightAlign();
 			//userTypedDS.setXY(x + (extraFactor * width), y);
 			userTypedDS.setXY(x + width + spaceOffset, y);
 			break;
 		}
-		case PICK_SUB_NUM:
-		case WRITE_SUB_RESULT: {
+		case WRITE_CARRY:
+		case SUM_ROWS: {
+			//DrawableCharBuffer answerDS = answerRows.get(answerRows.size() - 1);
+			//float width = answerDS.width();
 			float x = cursorDS.getX();
 			float y = cursorDS.getY();
-			//float width = answerDS.width();
 
 			userTypedDS.setRightAlign();
 			userTypedDS.setXY(x, y);
@@ -201,13 +245,13 @@ public class LongDivisionEntity extends Entity {
 	public static final float VERTICAL_SPACING_FACTOR = 1.2f;
 
 	private void positionSubtractionResults() {
-		for (int i = 0; i < subNumbers.size(); ++i) {
-			DrawableString sub = subNumbers.get(i);
-			DrawableString result = subResults.get(i);
+		for (int i = 0; i < aboveAdditionNumbers.size(); ++i) {
+			DrawableString sub = aboveAdditionNumbers.get(i);
+			DrawableString result = columnResults.get(i);
 			float xPosition = subOffsets.get(i);
 
-			float numPosY = numeratorDS.getY();
-			float numHght = numeratorDS.height() * VERTICAL_SPACING_FACTOR;
+			float numPosY = numberDS.getY();
+			float numHght = numberDS.height() * VERTICAL_SPACING_FACTOR;
 
 			float subY = numPosY - (2 * i + 1) * numHght;
 			float retY = numPosY - (2 * i + 2) * numHght;
@@ -223,7 +267,7 @@ public class LongDivisionEntity extends Entity {
 
 	private void positionNumberExtensions() {
 		for (int i = 0; i < subNumbersExtensions.size(); ++i) {
-			DrawableString adjacentResult = subResults.get(i);
+			DrawableString adjacentResult = columnResults.get(i);
 			DrawableString extension = subNumbersExtensions.get(i);
 
 			float x = adjacentResult.getX();
@@ -233,29 +277,22 @@ public class LongDivisionEntity extends Entity {
 		}
 	}
 	
-	private void positionRemainder() {
-		float x = answerDS.getX() + answerDS.width();
-		float y = answerDS.getY();
-		
-		remainderDS.setLeftAlign();
-		remainderDS.setXY(x, y);
-		
-	}
 
 	private float getHeightTolerenace() {
-		return 0.2f * numeratorDS.height();
+		return 0.2f * sizeSourceDS.height();
 	}
 
 	private float getWidthTolerance() {
-		return 0.5f * (0.5f * denominatorDS.width() + 0.5f * numeratorDS.width());
+		return 0.5f * (0.5f * multipliconDS.width() + 0.5f * numberDS.width());
 	}
 
 	@Override
 	public void draw(SpriteBatch batch) {
 		// Sprite and String drawings.
-		numeratorDS.draw(batch);
-		denominatorDS.draw(batch);
-		answerDS.draw(batch);
+		numberDS.draw(batch);
+		multipliconDS.draw(batch);
+		//answerDS.draw(batch);
+		multSymbolDS.draw(batch);
 		if(drawRemainder) {
 			remainderDS.draw(batch);
 		}
@@ -279,8 +316,7 @@ public class LongDivisionEntity extends Entity {
 
 		sr.begin(ShapeType.Line);
 		// draw the lines that make up the divisor bar.
-		sr.line(btmPoint, topLeftPoint);
-		sr.line(topLeftPoint, topRightPoint);
+		sr.line(btmPointRight, bottomLeftPoint);
 
 		for (int i = 0; i < horrizontal1Points.size(); ++i) {
 			Vector2 pnt1 = horrizontal1Points.get(i);
@@ -295,9 +331,9 @@ public class LongDivisionEntity extends Entity {
 	}
 
 	private void drawSubtractionElements(SpriteBatch batch) {
-		for (int i = 0; i < subNumbers.size(); ++i) {
-			subNumbers.get(i).draw(batch);
-			subResults.get(i).draw(batch);
+		for (int i = 0; i < aboveAdditionNumbers.size(); ++i) {
+			aboveAdditionNumbers.get(i).draw(batch);
+			columnResults.get(i).draw(batch);
 		}
 	}
 
@@ -363,14 +399,14 @@ public class LongDivisionEntity extends Entity {
 
 	private void addNumberToUserTyped(int number) {
 		switch (state) {
-		case PICK_TOP_NUM:
+		case MULT_ELEMENT:
 			// only allow a single number to be typed.
 			userTypedDS.setText("" + number);
 			break;
-		case PICK_SUB_NUM:
+		case WRITE_CARRY:
 			userTypedDS.append("" + number);
 			break;
-		case WRITE_SUB_RESULT:
+		case SUM_ROWS:
 			userTypedDS.append("" + number);
 			break;
 		}
@@ -378,11 +414,11 @@ public class LongDivisionEntity extends Entity {
 
 	private boolean allowNumberTyping() {
 		switch (state) {
-		case PICK_TOP_NUM:
-			return positionIdx < numeratorStr.length();
-		case PICK_SUB_NUM:
+		case MULT_ELEMENT:
+			return positionIdx < numberStr.length();
+		case WRITE_CARRY:
 			return true;
-		case WRITE_SUB_RESULT:
+		case SUM_ROWS:
 			return true;
 		}
 		return false;
@@ -391,13 +427,13 @@ public class LongDivisionEntity extends Entity {
 	private void nextStep() {
 
 		switch (state) {
-		case PICK_TOP_NUM:
+		case MULT_ELEMENT:
 			handlePickTopNum();
 			break;
-		case PICK_SUB_NUM:
+		case WRITE_CARRY:
 			handlePickSubNum();
 			break;
-		case WRITE_SUB_RESULT:
+		case SUM_ROWS:
 			handleWriteSubResult();
 			break;
 		}
@@ -405,14 +441,14 @@ public class LongDivisionEntity extends Entity {
 
 	private void handlePickTopNum() {
 		// check if this is the first step.
-		if (numeratorStr == null) {
-			numeratorStr = "" + numeratorDS.getText();
+		if (numberStr == null) {
+			numberStr = "" + numberDS.getText();
 			positionIdx = 0;
 			lastPositionIdx = -1;
 		}
 
 		// check if user is done.
-		if (positionIdx >= numeratorStr.length()) {
+		if (positionIdx >= numberStr.length()) {
 			return;
 		}
 
@@ -420,65 +456,66 @@ public class LongDivisionEntity extends Entity {
 			updatePositionDigit();
 		}
 
-		int stepNumerator = Integer.parseInt(miniNumerator.toString());
+		//int stepNumerator = Integer.parseInt(miniNumerator.toString());
 
-		lastDivisionResult = stepNumerator / denominator;
-		if (lastDivisionResult > 0 || (positionIdx >= numeratorStr.length() - 1)) {
-			if (checkIfUserTyped(lastDivisionResult)) {
-				valueToSubtractFrom.setLength(0);
-				valueToSubtractFrom.append(miniNumerator.toString());
-				miniNumerator.setLength(0);
-				positionIdx++;
-				appendTextToDS(lastDivisionResult + "", answerDS);
-				clearUserTyped();
-				transitionTo(State.PICK_SUB_NUM, lastDivisionResult);
-			} else {
-				clearUserTyped();
-			}
-		} else {
-			if (checkIfUserTyped(0)) {
-				appendTextToDS("" + 0, answerDS);
-				positionIdx++;
-				clearUserTyped();
-			} else {
-				clearUserTyped();
-			}
-		}
+//		lastDivisionResult = stepNumerator / multiplicon;
+//		if (lastDivisionResult > 0 || (positionIdx >= numberStr.length() - 1)) {
+//			if (checkIfUserTyped(lastDivisionResult)) {
+//				valueToSubtractFrom.setLength(0);
+//				valueToSubtractFrom.append(miniNumerator.toString());
+//				miniNumerator.setLength(0);
+//				positionIdx++;
+//				appendTextToDS(lastDivisionResult + "", answerDS);
+//				clearUserTyped();
+//				transitionTo(State.PICK_SUB_NUM, lastDivisionResult);
+//			} else {
+//				clearUserTyped();
+//			}
+//		} else {
+//			if (checkIfUserTyped(0)) {
+//				appendTextToDS("" + 0, answerDS);
+//				positionIdx++;
+//				clearUserTyped();
+//			} else {
+//				clearUserTyped();
+//			}
+//		}
 	}
 
 	private void updatePositionDigit() {
-		char newDigit = numeratorStr.charAt(positionIdx);
+		char newDigit = numberStr.charAt(positionIdx);
 		miniNumerator.append(newDigit);
 		if (subNumbersExtensions.size() > 0)
 			appendTextToDS(newDigit + "", subNumbersExtensions.get(subNumbersExtensions.size() - 1));
 		lastPositionIdx = positionIdx;
 	}
 
+	
 	private void handlePickSubNum() {
 		String userInput = userTypedDS.getText();
 		userInput = userInput.substring(1, userInput.length());
 		boolean moveToNextStep = false;
 
 		int multNum = subLastAnswer.get(subLastAnswer.size() - 1);
-		int correctSubValue = multNum * denominator;
-		if (userInput.length() > 0) {
-			// user typed something, check validity.
-			if (checkIfUserTyped(correctSubValue)) {
-				moveToNextStep = true;
-			} else {
-				clearUserTyped();
-			}
-		} else {
-			// user did not provide answer, show solution.
-			moveToNextStep = true;
-		}
-
-		if (moveToNextStep) {
-			DrawableString subNum = subNumbers.get(subNumbers.size() - 1);
-			subNum.setText("-" + correctSubValue);
-			clearUserTyped();
-			transitionTo(State.WRITE_SUB_RESULT, -1);
-		}
+//		int correctSubValue = multNum * multiplicon;
+//		if (userInput.length() > 0) {
+//			// user typed something, check validity.
+//			if (checkIfUserTyped(correctSubValue)) {
+//				moveToNextStep = true;
+//			} else {
+//				clearUserTyped();
+//			}
+//		} else {
+//			// user did not provide answer, show solution.
+//			moveToNextStep = true;
+//		}
+//
+//		if (moveToNextStep) {
+//			DrawableString subNum = aboveAdditionNumbers.get(aboveAdditionNumbers.size() - 1);
+//			subNum.setText("-" + correctSubValue);
+//			clearUserTyped();
+//			transitionTo(State.WRITE_SUB_RESULT, -1);
+//		}
 
 	}
 
@@ -486,7 +523,7 @@ public class LongDivisionEntity extends Entity {
 		String userInput = userTypedDS.getText();
 		boolean moveToNextStep = false;
 
-		int subtractionNumber = Math.abs(Integer.parseInt(subNumbers.get(subNumbers.size() - 1).getText()));
+		int subtractionNumber = Math.abs(Integer.parseInt(aboveAdditionNumbers.get(aboveAdditionNumbers.size() - 1).getText()));
 
 		int fromNum = Integer.parseInt(valueToSubtractFrom.toString());
 		int resultValue = fromNum - subtractionNumber;
@@ -504,10 +541,10 @@ public class LongDivisionEntity extends Entity {
 			valueToSubtractFrom.setLength(0);
 			valueToSubtractFrom.append("" + resultValue);
 
-			DrawableString retNum = subResults.get(subResults.size() - 1);
+			DrawableString retNum = columnResults.get(columnResults.size() - 1);
 			retNum.setText("" + resultValue);
 			clearUserTyped();
-			transitionTo(State.PICK_TOP_NUM, -1);
+			transitionTo(State.MULT_ELEMENT, -1);
 		} else {
 			//let user change what they typed instead of clobbering it.
 			//clearUserTyped(); //uncomment if you want this to clobber their input.
@@ -518,13 +555,13 @@ public class LongDivisionEntity extends Entity {
 	private void transitionTo(State newState, int passedValueIfNecessary) {
 		state = newState;
 		switch (state) {
-		case PICK_TOP_NUM:
+		case MULT_ELEMENT:
 			preparePickTopNum();
 			break;
-		case PICK_SUB_NUM:
+		case WRITE_CARRY:
 			preparePickSubNum(passedValueIfNecessary);
 			break;
-		case WRITE_SUB_RESULT:
+		case SUM_ROWS:
 			prepareWriteSubResult();
 			break;
 		}
@@ -534,20 +571,20 @@ public class LongDivisionEntity extends Entity {
 		miniNumerator.setLength(0);
 		miniNumerator.append(valueToSubtractFrom.toString());
 
-		String lastResult = subResults.get(subResults.size() - 1).getText();
+		String lastResult = columnResults.get(columnResults.size() - 1).getText();
 		DrawableString extension = new DrawableString(miniNumerator.toString().substring(lastResult.length()));
 		subNumbersExtensions.add(extension);
 
 		// correctly calculate the extension value
-		if (lastPositionIdx != positionIdx && positionIdx < numeratorStr.length()) updatePositionDigit();
+		if (lastPositionIdx != positionIdx && positionIdx < numberStr.length()) updatePositionDigit();
 
 		// check if division is done, configure remainder.
-		if(positionIdx >= numeratorStr.length()) {
+		if(positionIdx >= numberStr.length()) {
 			drawCursor = false;
-			remainder = Integer.parseInt(subResults.get(subResults.size() - 1).getText());
+			remainder = Integer.parseInt(columnResults.get(columnResults.size() - 1).getText());
 			remainderDS.setText("R:" + remainder);
 			if(makeLastResultColored) {
-				subResults.get(subResults.size() - 1).makeRed();
+				columnResults.get(columnResults.size() - 1).makeRed();
 			}
 		}
 		
@@ -555,17 +592,11 @@ public class LongDivisionEntity extends Entity {
 		positionCursor();
 		positionUserTyped();
 		positionNumberExtensions();
-		positionRemainder();
 	}
 
 	private void preparePickSubNum(int resultOfLastPickTop) {
-		subNumbers.add(new DrawableString(""));
-		subResults.add(new DrawableString(""));
-		subLastAnswer.add(resultOfLastPickTop);
-		subAnswerLength.add(answerDS.length());
-		float offset = calculateSubElementXOffset();
-		subOffsets.add(offset);
-		userTypedDS.setText("-");
+		
+		
 		positionSubtractionResults();
 		positionCursor();
 		positionUserTyped();
@@ -584,7 +615,7 @@ public class LongDivisionEntity extends Entity {
 
 	private void positionHorrizontalBars() {
 		for (int i = 0; i < horrizontal1Points.size(); ++i) {
-			DrawableString subtractSpot = subNumbers.get(i);
+			DrawableString subtractSpot = aboveAdditionNumbers.get(i);
 			float x = subtractSpot.getX();
 			float y = subtractSpot.getY() - (extraFactor * subtractSpot.height()) * 0.5f;
 			horrizontal1Points.get(i).set(x, y);
@@ -592,25 +623,7 @@ public class LongDivisionEntity extends Entity {
 		}
 	}
 
-	private float calculateSubElementXOffset() {
-		float offset = numeratorDS.getX() - (numeratorDS.width() * 0.5f);
-		offset += answerDS.width();
-		return offset;
-	}
 
-	private void correctSubElementsOffsetsForScale() {
-		String answer = answerDS.getText();
-
-		for (int i = 0; i < subNumbers.size(); ++i) {
-			int answerChars = subAnswerLength.get(i);
-			answerDS.setText(answer.substring(0, answerChars));
-			float offset = calculateSubElementXOffset();
-			subOffsets.set(i, offset);
-		}
-
-		// restore answer.
-		answerDS.setText(answer);
-	}
 
 	private void appendTextToDS(String text, DrawableString targetDS) {
 		String textToAmend = targetDS.getText();
@@ -624,7 +637,7 @@ public class LongDivisionEntity extends Entity {
 	}
 
 	private void clearUserTyped() {
-		if (state == State.PICK_SUB_NUM) {
+		if (state == State.WRITE_CARRY) {
 			userTypedDS.setText("-");
 		} else {
 			userTypedDS.setText("");
@@ -659,28 +672,27 @@ public class LongDivisionEntity extends Entity {
 	public void scale(float scaleX, float scaleY) {
 		this.scaleX = scaleX;
 		this.scaleY = scaleY;
-		this.denominatorDS.setScale(scaleX, scaleY);
-		this.numeratorDS.setScale(scaleX, scaleY);
-		this.answerDS.setScale(scaleX, scaleY);
+		this.multipliconDS.setScale(scaleX, scaleY);
+		this.numberDS.setScale(scaleX, scaleY);
+		//this.answerDS.setScale(scaleX, scaleY);
+		this.multSymbolDS.setScale(scaleX, scaleY);
 		this.cursorDS.setScale(scaleX, scaleY);
 		this.userTypedDS.setScale(scaleX, scaleY);
 		this.remainderDS.setScale(scaleX * additionalScaleFactor, scaleY * additionalScaleFactor);
 		this.sizeSourceDS.setScale(scaleX, scaleY);
 		calculateSpaceOffsets();
-		for (int i = 0; i < subNumbers.size(); ++i) {
-			subNumbers.get(i).setScale(scaleX, scaleY);
-			subResults.get(i).setScale(scaleX, scaleY);
+		for (int i = 0; i < aboveAdditionNumbers.size(); ++i) {
+			aboveAdditionNumbers.get(i).setScale(scaleX, scaleY);
+			columnResults.get(i).setScale(scaleX, scaleY);
 		}
 		for (int i = 0; i < subNumbersExtensions.size(); ++i) {
 			subNumbersExtensions.get(i).setScale(scaleX, scaleY);
 		}
-		correctSubElementsOffsetsForScale();
 		positionElements();
 		positionCursor();
 		positionUserTyped();
 		positionSubtractionResults();
 		positionNumberExtensions();
-		positionRemainder();
 	}
 
 	private void calculateSpaceOffsets() {	
@@ -688,6 +700,6 @@ public class LongDivisionEntity extends Entity {
 	}
 
 	public enum State {
-		PICK_TOP_NUM, PICK_SUB_NUM, WRITE_SUB_RESULT
+		MULT_ELEMENT, WRITE_CARRY, SUM_ROWS
 	}
 }
