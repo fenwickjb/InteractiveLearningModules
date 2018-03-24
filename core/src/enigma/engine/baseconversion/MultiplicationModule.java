@@ -1,4 +1,4 @@
-package enigma.engine.basicmath;
+package enigma.engine.baseconversion;
 
 import java.util.Random;
 

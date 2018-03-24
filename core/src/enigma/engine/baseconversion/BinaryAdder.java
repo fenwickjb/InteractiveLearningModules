@@ -16,24 +16,27 @@ import enigma.engine.Entity;
 import enigma.engine.TextureLookup;
 import enigma.engine.Timer;
 
-public class MultiplicationEntity extends Entity {
-	private DrawableCharBuffer multipliconDS;
+public class BinaryAdder extends Entity {
+	private DrawableCharBuffer additionDS;
 	private DrawableCharBuffer numberDS;
-	//private DrawableString answerDS;
+	private DrawableCharBuffer spacingProvider;
+	private DrawableCharBuffer bottomAnswerDS;
+	// private DrawableString answerDS;
 	private DrawableString remainderDS;
 	private DrawableString multSymbolDS;
-	
-	private ArrayList<DrawableCharBuffer> answerRows = new ArrayList<DrawableCharBuffer>();
-	private boolean colorCode = true;
-	
-	private char multSymbol = 'x';
-	//private char multSymbol = '*';
-	
-	private int topNumberIdx = 0;
-	private int multiconIdx = 0;
+	private DrawableCharBuffer userTypedDS;
 
-	private float scaleX;
-	private float scaleY;
+	private String solution = "";
+	
+	private ArrayList<DrawableCharBuffer> numberCarries = new ArrayList<DrawableCharBuffer>();
+
+	private boolean colorCode = true;
+
+	private char addSymbol = '+';
+
+	private int topNumberIdx = 0;
+	private int resultIdx = 0;
+
 	private float additionalScaleFactor = 1f;
 
 	private DrawableString cursorDS;
@@ -43,8 +46,8 @@ public class MultiplicationEntity extends Entity {
 	private String cursorTimerKey = "C";
 	private long cursorDelay = 400;
 
-	private float number;
-	private float multiplicon;
+	private int  number;
+	private int multiplicon;
 	private int remainder = 0;
 	private float x;
 	private float y;
@@ -63,6 +66,8 @@ public class MultiplicationEntity extends Entity {
 	private Vector2 bottomLeftPoint = new Vector2();
 	private float lastDivisionResult;
 
+	private ArrayList<ArrayList<DrawableString>> carries;
+	
 	private ArrayList<DrawableString> aboveAdditionNumbers;
 	private ArrayList<DrawableString> columnResults;
 	private ArrayList<DrawableString> subNumbersExtensions;
@@ -73,35 +78,44 @@ public class MultiplicationEntity extends Entity {
 	private ArrayList<Vector2> horrizontal2Points;
 
 	// LOGIC
+	private int additionPositionIndex = 0;
+	
 	private int lastPositionIdx = -1;
+	
 
-	private DrawableString userTypedDS;
 	private float extraFactor = 1.2f;
 	private DrawableString sizeSourceDS;
 	private float spaceOffset;
 
 	private StringBuilder valueToSubtractFrom = new StringBuilder();
-	
+
 	private boolean drawRemainder = true;
 	private boolean makeLastResultColored = false;
-	
-	
+	private float scaleX;
+	private float scaleY;
 
-	public MultiplicationEntity(float number, float multiplicon, float x, float y, boolean start) {
-		this.multipliconDS = new DrawableCharBuffer(filterZeros("" + multiplicon));
+	public BinaryAdder(int number, int addition, float x, float y, boolean start) {
+		this(Integer.toBinaryString(number), Integer.toBinaryString(addition), x, y, start);
+	}
+
+	public BinaryAdder(String number, String addition, float x, float y, boolean start) {
+		this.additionDS = new DrawableCharBuffer(filterZeros("" + addition));
 		this.numberDS = new DrawableCharBuffer("" + number);
-		
-		this.number = number;
-		this.multiplicon = multiplicon;
-		
-		this.multSymbolDS = new DrawableString("" + multSymbol);
+		//this.spacingProvider = new DrawableCharBuffer("" + number);
+		this.spacingProvider = new DrawableCharBuffer("");
+		this.bottomAnswerDS = new DrawableCharBuffer("");
+
+		 this.number = Integer.parseInt(number, 2);
+		 this.multiplicon = Integer.parseInt(addition, 2);
+
+		this.multSymbolDS = new DrawableString("" + addSymbol);
 		this.multSymbolDS.setRightAlign();
-		
+
 		this.numberStr = this.numberDS.getText();
-		
+
 		this.cursorDS = new DrawableString("|");
 		this.sizeSourceDS = new DrawableString("3");
-		
+
 		this.x = x;
 		this.y = y;
 		this.state = State.START;
@@ -111,20 +125,24 @@ public class MultiplicationEntity extends Entity {
 
 		horrizontal1Points = new ArrayList<Vector2>();
 		horrizontal2Points = new ArrayList<Vector2>();
-		
+
 		this.timer = new Timer();
 		timer.setTimer(cursorTimerKey, cursorDelay);
 
-		userTypedDS = new DrawableString("");
-		answerRows.add(new DrawableCharBuffer(""));
-		
+		userTypedDS = new DrawableCharBuffer("");
+		numberCarries.add(new DrawableCharBuffer(""));
+
 		topNumberIdx = numberDS.size() - 1;
-		multiconIdx = multipliconDS.size() - 1;
+		resultIdx = additionDS.size() - 1;
+
+		carries = new ArrayList<ArrayList<DrawableString>>();
+		for(int i = 0; i < numberDS.length(); ++i) {
+			addNewCarryColumn();
+		}
 		
-		
-		//ELEMENT TO DELETE
-		//this.answerDS = new DrawableString("");
-		//this.answerDS.setRightAlign();
+		// ELEMENT TO DELETE
+		// this.answerDS = new DrawableString("");
+		// this.answerDS.setRightAlign();
 		this.remainderDS = new DrawableString("");
 		subLastAnswer = new ArrayList<Integer>();
 		subAnswerLength = new ArrayList<Integer>();
@@ -133,93 +151,135 @@ public class MultiplicationEntity extends Entity {
 		this.remainderDS.setScale(additionalScaleFactor, additionalScaleFactor);
 		this.remainderDS.makeRed();
 		// STOP DELETING
-		
+
 		positionElements();
+
+		calculateSolution();
 		
-		if(start) {
+		if (start) {
 			nextStep();
 		}
+	}
+	
+	private void calculateSolution() {
+		try {
+			int result = number + multiplicon;
+			solution = Integer.toBinaryString(result);
+		} catch (Exception e ) {
+			//Gdx.app.log(tag, message);
+		}
+		
+	}
+
+	private void addNewCarryColumn() {
+		carries.add(new ArrayList<DrawableString>());
 	}
 
 	private String filterZeros(String number) {
 		String[] split = number.split("\\.");
-		if(split.length == 1) {
+		if (split.length == 1) {
 			return number;
 		} else if (split.length == 2) {
 			int decimal = Integer.parseInt(split[1]);
-			if(decimal == 0) {
+			if (decimal == 0) {
 				return split[0];
 			} else {
 				return number;
 			}
-		} else
-		{
+		} else {
 			return number;
 		}
 	}
 
 	private void positionElements() {
+		reapplyScale();
 		calculateSpaceOffsets();
 		numberDS.setXY(x, y);
+		//spacingProvider.setLeftAlign();
+		spacingProvider.setRightAlign();
+		spacingProvider.setXY(x + numberDS.width() / 2, y);
+		
+		bottomAnswerDS.setRightAlign();
 
 		float halfNumerWidth = numberDS.width() / 2;
 		float toleranceHeight = getHeightTolerenace();
 
-		multipliconDS.setRightAlign();
-		multipliconDS.setXY(x + halfNumerWidth  , y - (numberDS.height() + toleranceHeight));
-		
+		additionDS.setRightAlign();
+		additionDS.setXY(x + halfNumerWidth, y - (numberDS.height() + toleranceHeight));
+
 		float symbolOffset = 4 * spaceOffset;
-		multSymbolDS.setXY(multipliconDS.getX() - multipliconDS.width() -  symbolOffset, multipliconDS.getY());
+		multSymbolDS.setXY(additionDS.getX() - additionDS.width() - symbolOffset, additionDS.getY());
 
-		btmPointRight.x = multipliconDS.getX();
-		btmPointRight.y = multipliconDS.getY() - 0.5f * multipliconDS.height() - toleranceHeight;
+		btmPointRight.x = additionDS.getX();
+		btmPointRight.y = additionDS.getY() - 0.5f * additionDS.height() - toleranceHeight;
 
-		float bottomWidth = multipliconDS.width() + multSymbolDS.width() + symbolOffset;
+		float bottomWidth = additionDS.width() + multSymbolDS.width() + symbolOffset;
 		bottomLeftPoint.x = btmPointRight.x - Math.max(numberDS.width(), bottomWidth);
 		bottomLeftPoint.y = btmPointRight.y;
 
-		//answerDS.setXY(x - numberDS.width() / 2, y - 2*numberDS.height() - 2 * toleranceHeight);
-		float firstRowY = y - 2*numberDS.height() - 2 * toleranceHeight;
-		float rowX = multipliconDS.getX() - spaceOffset;
-		for(int i = 0; i < answerRows.size(); ++i) {
-			DrawableCharBuffer answer = answerRows.get(i); 
-			
+		// answerDS.setXY(x - numberDS.width() / 2, y - 2*numberDS.height() - 2 *
+		// toleranceHeight);
+		float firstRowY = y - 2 * numberDS.height() - 2 * toleranceHeight;
+		float rowX = additionDS.getX() - spaceOffset;
+		for (int i = 0; i < numberCarries.size(); ++i) {
+			DrawableCharBuffer answer = numberCarries.get(i);
+
 			answer.setXY(rowX, firstRowY);
 		}
 
+		positionAnswer();
 		calculateSpaceOffsets();
-		positionCursor();
 		positionUserTyped();
 		positionSubtractionResults();
 		positionHorrizontalBars();
 		positionNumberExtensions();
+		positionCarries();
+	}
+
+	private void positionCarries() {
+		while(spacingProvider.size() < carries.size()) {
+			spacingProvider.preappend("0"); //this is a very costly operation.
+		}
+		
+		for (int index = 0; index < carries.size(); ++index) {
+			int spacingSize = spacingProvider.size();
+			if(spacingSize == 0) return;
+			
+			DrawableString spacer = spacingProvider.getCharObjectAt((spacingSize - 1) - index);
+			float x = spacer.getX();
+			float y = spacer.getY();
+
+			ArrayList<DrawableString> carryColumn = carries.get(index);
+			for(int row = 0; row < carryColumn.size(); ++row) {
+				DrawableString ds = carryColumn.get(row); 
+				ds.setXY(x, y + (row + 1) * (ds.height() + spaceOffset));
+			}
+		}
+	}
+
+	private void positionAnswer() {
+		float x = additionDS.getX();
+		float y = additionDS.getY();
+		
+		bottomAnswerDS.setXY(x , y - (additionDS.height() + 2 * spaceOffset));
+	}
+
+	private void reapplyScale() {
+		userTypedDS.setScale(scaleX, scaleY);
+		
 	}
 
 	private void positionCursor() {
 		switch (state) {
-		case MULT_ELEMENT: {
-			DrawableCharBuffer answerDS = answerRows.get(answerRows.size() - 1);
-			
-			float x = answerDS.getX();
-			float y = answerDS.getY();
-			float ansWidth = answerDS.width();
+		case ADD_ELEMENT_BOTTOM: {
+			DrawableCharBuffer answerDS = numberCarries.get(numberCarries.size() - 1);
+
+			float x = userTypedDS.getX();
+			float y = userTypedDS.getY();
+			float ansWidth = userTypedDS.width();
 			float userWidth = userTypedDS.width();
-			//cursorDS.setXY(x + extraFactor * (ansWidth + userWidth), y);
+			// cursorDS.setXY(x + extraFactor * (ansWidth + userWidth), y);
 			cursorDS.setXY(x + spaceOffset, y);
-			break;
-		}
-		case WRITE_CARRY: {
-			DrawableString lastSubNumber = aboveAdditionNumbers.get(aboveAdditionNumbers.size() - 1);
-			float x = lastSubNumber.getX();
-			float y = lastSubNumber.getY();
-			cursorDS.setXY(x, y);
-			break;
-		}
-		case SUM_ROWS: {
-			DrawableString lastResultNumber = columnResults.get(columnResults.size() - 1);
-			float x = lastResultNumber.getX();
-			float y = lastResultNumber.getY();
-			cursorDS.setXY(x, y);
 			break;
 		}
 		default:
@@ -229,31 +289,35 @@ public class MultiplicationEntity extends Entity {
 
 	private void positionUserTyped() {
 		switch (state) {
-		case MULT_ELEMENT: {
-			DrawableCharBuffer answerDS = answerRows.get(answerRows.size() - 1);
-			float x = answerDS.getX();
-			float y = answerDS.getY();
-			float width = answerDS.width();
+		case ADD_ELEMENT_BOTTOM: {
+			//DrawableCharBuffer answerDS = numberCarries.get(numberCarries.size() - 1);
+			DrawableString spotDS = null;
+			float x;
+			float y;
+			if(positionIdx < numberDS.length()) {
+				spotDS = numberDS.getCharObjectAt((numberDS.length() - 1) -positionIdx);
+				x = spotDS.getX();
+				y = spotDS.getY();
+			} else if (positionIdx < carries.size()) {
+				//there must be an extra carry if this branch is hit, it must be 1; not null.
+				spotDS = carries.get(positionIdx).get(0);
+				x = spotDS.getX();
+				y = numberDS.getCharObjectAt(0).getY();
+				
+			} else {
+				return;
+			}
+			float width = spotDS.width();
 			userTypedDS.setRightAlign();
-			//userTypedDS.setXY(x + (extraFactor * width), y);
-			userTypedDS.setXY(x + width + spaceOffset, y);
-			break;
-		}
-		case WRITE_CARRY:
-		case SUM_ROWS: {
-			//DrawableCharBuffer answerDS = answerRows.get(answerRows.size() - 1);
-			//float width = answerDS.width();
-			float x = cursorDS.getX();
-			float y = cursorDS.getY();
-
-			userTypedDS.setRightAlign();
-			userTypedDS.setXY(x, y);
+			// userTypedDS.setXY(x + (extraFactor * width), y);
+			userTypedDS.setXY(x + width + spaceOffset, y - 4*(spotDS.height() + 2 * spaceOffset));
 			break;
 		}
 		default:
 			break;
 
 		}
+		positionCursor();
 	}
 
 	public static final float VERTICAL_SPACING_FACTOR = 1.2f;
@@ -290,29 +354,36 @@ public class MultiplicationEntity extends Entity {
 			extension.setXY(x, y);
 		}
 	}
-	
 
 	private float getHeightTolerenace() {
 		return 0.2f * sizeSourceDS.height();
 	}
 
 	private float getWidthTolerance() {
-		return 0.5f * (0.5f * multipliconDS.width() + 0.5f * numberDS.width());
+		return 0.5f * (0.5f * additionDS.width() + 0.5f * numberDS.width());
 	}
 
 	@Override
 	public void draw(SpriteBatch batch) {
 		// Sprite and String drawings.
 		numberDS.draw(batch);
-		multipliconDS.draw(batch);
-		//answerDS.draw(batch);
+		additionDS.draw(batch);
+		// answerDS.draw(batch);
 		multSymbolDS.draw(batch);
-		if(drawRemainder) {
+		if (drawRemainder) {
 			remainderDS.draw(batch);
 		}
 		drawSubtractionElements(batch);
 		drawNumberExtensions(batch);
 		userTypedDS.draw(batch);
+		bottomAnswerDS.draw(batch);
+		
+		for(int i = 0; i < carries.size(); ++i) {
+			ArrayList<DrawableString> column = carries.get(i);
+			for(int j = 0; j < column.size(); ++j) {
+				column.get(j).draw(batch);
+			}
+		}
 
 		if (shouldDrawCursor()) {
 			cursorDS.draw(batch);
@@ -359,7 +430,13 @@ public class MultiplicationEntity extends Entity {
 
 	@Override
 	public void logic() {
-
+		for(int i = 0; i < carries.size(); ++i) {
+			ArrayList<DrawableString> column = carries.get(i);
+			for(int j = 0; j < column.size(); ++j) {
+				column.get(j).logic();
+			}
+		}
+		bottomAnswerDS.logic();
 	}
 
 	@Override
@@ -413,14 +490,8 @@ public class MultiplicationEntity extends Entity {
 
 	private void addNumberToUserTyped(int number) {
 		switch (state) {
-		case MULT_ELEMENT:
+		case ADD_ELEMENT_BOTTOM:
 			// only allow a single number to be typed.
-			userTypedDS.setText("" + number);
-			break;
-		case WRITE_CARRY:
-			userTypedDS.append("" + number);
-			break;
-		case SUM_ROWS:
 			userTypedDS.append("" + number);
 			break;
 		default:
@@ -430,12 +501,8 @@ public class MultiplicationEntity extends Entity {
 
 	private boolean allowNumberTyping() {
 		switch (state) {
-		case MULT_ELEMENT:
+		case ADD_ELEMENT_BOTTOM:
 			return positionIdx < numberStr.length();
-		case WRITE_CARRY:
-			return true;
-		case SUM_ROWS:
-			return true;
 		default:
 			break;
 		}
@@ -448,14 +515,8 @@ public class MultiplicationEntity extends Entity {
 		case START:
 			handleStart();
 			break;
-		case MULT_ELEMENT:
-			handlePickTopNum();
-			break;
-		case WRITE_CARRY:
-			handlePickSubNum();
-			break;
-		case SUM_ROWS:
-			handleWriteSubResult();
+		case ADD_ELEMENT_BOTTOM:
+			handleTypeBottom();
 			break;
 		default:
 			break;
@@ -463,91 +524,166 @@ public class MultiplicationEntity extends Entity {
 	}
 
 	private void handleStart() {
-		if(colorCode){
+		if (colorCode) {
 			numberDS.setRed(topNumberIdx);
-			multipliconDS.setBlue(multiconIdx);
+			additionDS.setBlue(resultIdx);
 		}
+
+		transitionTo(State.ADD_ELEMENT_BOTTOM, -1);
+	}
+
+	private void handleTypeBottom() {
+		try {
+			// check if user is done.
+			if (positionIdx >= solution.length()) {
+				transitionTo(State.DONE, -1);
+				drawCursor = false;
+				return;
+			}
+			
+			
+			int top = 0;
+			int bottom = 0;
+			if(positionIdx < numberDS.length())
+			{
+				top = Integer.parseInt("" + numberDS.getCharAt((numberDS.length() - 1) - positionIdx));
+			}
+			if(positionIdx < additionDS.length())
+			{
+				bottom = Integer.parseInt("" + additionDS.getCharAt((additionDS.length() - 1) - positionIdx));
+			}
+			
+			int sum = top + bottom;
+			ArrayList<DrawableString> caryColumn = carries.get(positionIdx);
+			for (int i = 0; i < caryColumn.size(); ++i) {
+				sum += Integer.parseInt(caryColumn.get(i).getText());
+			}
+
+			boolean proceedToNextStep = false;
+			String userTextAnswer = userTypedDS.getText();
+			int userAnswer = -1;
+			if (userTextAnswer != "") {
+				userAnswer = Integer.parseInt(userTypedDS.getText(), 2);
+			} else {
+				// user didn't type an answer, they must want to see solution.
+				//proceedToNextStep = true;
+				userTypedDS.setText(Integer.toBinaryString(sum));
+				return;
+			}
+
+			if (userAnswer == sum) {
+				proceedToNextStep = true;
+			} else {
+				// user typed wrong answer
+			}
+
+			if (proceedToNextStep) {
+				if (userAnswer == sum) {
+					// show green check only if user actually typed something.
+					// TODO display a green check mark.
+				}
+
+				// interpolate to correct positions
+				for (int i = 0; i < userTypedDS.size(); ++i) {
+					DrawableString charObjectAt = userTypedDS.getCharObjectAt((userTypedDS.size() - 1) - i);
+					if (i == 0) {
+						// least order digit goes to answer
+						addAndInterpolateAnswer(charObjectAt);
+					} else {
+						// move this to carry if a non-zero
+						String text = charObjectAt.getText();
+						if (text.equals("1")) {
+							addAndInterpolateCarry(charObjectAt, i + positionIdx);
+						}
+					}
+				}
+				userTypedDS.setText("");
+				if (positionIdx < numberDS.length()) {
+					numberDS.setNormalColor(-positionIdx + (numberDS.length() - 1));
+				}
+				if (positionIdx < additionDS.length()) {
+					additionDS.setNormalColor(-positionIdx + (additionDS.length() - 1));
+				}
+				
+				positionIdx++;
+				if(colorCode) {
+					if (positionIdx < numberDS.length()) {
+						numberDS.setRed(-positionIdx + (numberDS.length() - 1));
+					}
+					if (positionIdx < additionDS.length()) {
+						additionDS.setBlue(-positionIdx + (additionDS.length() - 1));
+					}
+				}
+				positionUserTyped();
+			}
+		} catch (Exception e) {
+			// prevent crashes when user types non-integers.
+			userTypedDS.setText("");
+		}
+	}
+
+	private void addAndInterpolateAnswer(DrawableString ds) {
+		float oriX = ds.getX();
+		float oriY = ds.getY();
+		bottomAnswerDS.preappend(ds);
+
+		float interpX = ds.getX();
+		float interpY = ds.getY();
 		
-		transitionTo(State.MULT_ELEMENT, -1);
+		ds.setXY(oriX, oriY);
+		ds.interpolateTo(interpX, interpY);
 	}
 
-	private void handlePickTopNum() {
-		// check if this is the first step.
-		if (numberStr == null) {
-			numberStr = "" + numberDS.getText();
-			positionIdx = 0;
-			lastPositionIdx = -1;
+	private void addAndInterpolateCarry(DrawableString ds, int index) {
+		while(index >= carries.size()) {
+			addNewCarryColumn();
 		}
-
-		// check if user is done.
-		if (positionIdx >= numberStr.length()) {
-			return;
+		while(index >= spacingProvider.length()) {
+			spacingProvider.preappend("0"); //this is a very costly operation.
 		}
-
-		if (positionIdx != lastPositionIdx) {
-			updatePositionDigit();
-		}
-
-		//int stepNumerator = Integer.parseInt(miniNumerator.toString());
-
-//		lastDivisionResult = stepNumerator / multiplicon;
-//		if (lastDivisionResult > 0 || (positionIdx >= numberStr.length() - 1)) {
-//			if (checkIfUserTyped(lastDivisionResult)) {
-//				valueToSubtractFrom.setLength(0);
-//				valueToSubtractFrom.append(miniNumerator.toString());
-//				miniNumerator.setLength(0);
-//				positionIdx++;
-//				appendTextToDS(lastDivisionResult + "", answerDS);
-//				clearUserTyped();
-//				transitionTo(State.PICK_SUB_NUM, lastDivisionResult);
-//			} else {
-//				clearUserTyped();
-//			}
-//		} else {
-//			if (checkIfUserTyped(0)) {
-//				appendTextToDS("" + 0, answerDS);
-//				positionIdx++;
-//				clearUserTyped();
-//			} else {
-//				clearUserTyped();
-//			}
-//		}
+		DrawableString spacer = spacingProvider.getCharObjectAt((spacingProvider.size() -1) - index);
+		float x = spacer.getX();
+		float y = spacer.getY();
+		
+		ArrayList<DrawableString> carryColumn = carries.get(index);
+		carryColumn.add(ds);
+		ds.interpolateTo(x, y + carryColumn.size() * (ds.height() + spaceOffset));
 	}
 
-	private void updatePositionDigit() {
-		char newDigit = numberStr.charAt(positionIdx);
-		miniNumerator.append(newDigit);
-		if (subNumbersExtensions.size() > 0)
-			appendTextToDS(newDigit + "", subNumbersExtensions.get(subNumbersExtensions.size() - 1));
-		lastPositionIdx = positionIdx;
-	}
+//	private void updatePositionDigit() {
+//		char newDigit = numberStr.charAt(positionIdx);
+//		miniNumerator.append(newDigit);
+//		if (subNumbersExtensions.size() > 0)
+//			appendTextToDS(newDigit + "", subNumbersExtensions.get(subNumbersExtensions.size() - 1));
+//		lastPositionIdx = positionIdx;
+//	}
 
-	
 	private void handlePickSubNum() {
 		String userInput = userTypedDS.getText();
 		userInput = userInput.substring(1, userInput.length());
 		boolean moveToNextStep = false;
 
 		int multNum = subLastAnswer.get(subLastAnswer.size() - 1);
-//		int correctSubValue = multNum * multiplicon;
-//		if (userInput.length() > 0) {
-//			// user typed something, check validity.
-//			if (checkIfUserTyped(correctSubValue)) {
-//				moveToNextStep = true;
-//			} else {
-//				clearUserTyped();
-//			}
-//		} else {
-//			// user did not provide answer, show solution.
-//			moveToNextStep = true;
-//		}
-//
-//		if (moveToNextStep) {
-//			DrawableString subNum = aboveAdditionNumbers.get(aboveAdditionNumbers.size() - 1);
-//			subNum.setText("-" + correctSubValue);
-//			clearUserTyped();
-//			transitionTo(State.WRITE_SUB_RESULT, -1);
-//		}
+		// int correctSubValue = multNum * multiplicon;
+		// if (userInput.length() > 0) {
+		// // user typed something, check validity.
+		// if (checkIfUserTyped(correctSubValue)) {
+		// moveToNextStep = true;
+		// } else {
+		// clearUserTyped();
+		// }
+		// } else {
+		// // user did not provide answer, show solution.
+		// moveToNextStep = true;
+		// }
+		//
+		// if (moveToNextStep) {
+		// DrawableString subNum = aboveAdditionNumbers.get(aboveAdditionNumbers.size()
+		// - 1);
+		// subNum.setText("-" + correctSubValue);
+		// clearUserTyped();
+		// transitionTo(State.WRITE_SUB_RESULT, -1);
+		// }
 
 	}
 
@@ -555,7 +691,8 @@ public class MultiplicationEntity extends Entity {
 		String userInput = userTypedDS.getText();
 		boolean moveToNextStep = false;
 
-		int subtractionNumber = Math.abs(Integer.parseInt(aboveAdditionNumbers.get(aboveAdditionNumbers.size() - 1).getText()));
+		int subtractionNumber = Math
+				.abs(Integer.parseInt(aboveAdditionNumbers.get(aboveAdditionNumbers.size() - 1).getText()));
 
 		int fromNum = Integer.parseInt(valueToSubtractFrom.toString());
 		int resultValue = fromNum - subtractionNumber;
@@ -576,10 +713,10 @@ public class MultiplicationEntity extends Entity {
 			DrawableString retNum = columnResults.get(columnResults.size() - 1);
 			retNum.setText("" + resultValue);
 			clearUserTyped();
-			transitionTo(State.MULT_ELEMENT, -1);
+			transitionTo(State.ADD_ELEMENT_BOTTOM, -1);
 		} else {
-			//let user change what they typed instead of clobbering it.
-			//clearUserTyped(); //uncomment if you want this to clobber their input.
+			// let user change what they typed instead of clobbering it.
+			// clearUserTyped(); //uncomment if you want this to clobber their input.
 		}
 
 	}
@@ -587,14 +724,8 @@ public class MultiplicationEntity extends Entity {
 	private void transitionTo(State newState, int passedValueIfNecessary) {
 		state = newState;
 		switch (state) {
-		case MULT_ELEMENT:
+		case ADD_ELEMENT_BOTTOM:
 			preparePickTopNum();
-			break;
-		case WRITE_CARRY:
-			preparePickSubNum(passedValueIfNecessary);
-			break;
-		case SUM_ROWS:
-			prepareWriteSubResult();
 			break;
 		default:
 			break;
@@ -602,26 +733,29 @@ public class MultiplicationEntity extends Entity {
 	}
 
 	private void preparePickTopNum() {
-//		miniNumerator.setLength(0);
-//		miniNumerator.append(valueToSubtractFrom.toString());
-//
-//		String lastResult = columnResults.get(columnResults.size() - 1).getText();
-//		DrawableString extension = new DrawableString(miniNumerator.toString().substring(lastResult.length()));
-//		subNumbersExtensions.add(extension);
-//
-//		// correctly calculate the extension value
-//		if (lastPositionIdx != positionIdx && positionIdx < numberStr.length()) updatePositionDigit();
-//
-//		// check if division is done, configure remainder.
-//		if(positionIdx >= numberStr.length()) {
-//			drawCursor = false;
-//			remainder = Integer.parseInt(columnResults.get(columnResults.size() - 1).getText());
-//			remainderDS.setText("R:" + remainder);
-//			if(makeLastResultColored) {
-//				columnResults.get(columnResults.size() - 1).makeRed();
-//			}
-//		}
-		
+		// miniNumerator.setLength(0);
+		// miniNumerator.append(valueToSubtractFrom.toString());
+		//
+		// String lastResult = columnResults.get(columnResults.size() - 1).getText();
+		// DrawableString extension = new
+		// DrawableString(miniNumerator.toString().substring(lastResult.length()));
+		// subNumbersExtensions.add(extension);
+		//
+		// // correctly calculate the extension value
+		// if (lastPositionIdx != positionIdx && positionIdx < numberStr.length())
+		// updatePositionDigit();
+		//
+		// // check if division is done, configure remainder.
+		// if(positionIdx >= numberStr.length()) {
+		// drawCursor = false;
+		// remainder = Integer.parseInt(columnResults.get(columnResults.size() -
+		// 1).getText());
+		// remainderDS.setText("R:" + remainder);
+		// if(makeLastResultColored) {
+		// columnResults.get(columnResults.size() - 1).makeRed();
+		// }
+		// }
+
 		clearUserTyped();
 		positionCursor();
 		positionUserTyped();
@@ -629,8 +763,7 @@ public class MultiplicationEntity extends Entity {
 	}
 
 	private void preparePickSubNum(int resultOfLastPickTop) {
-		
-		
+
 		positionSubtractionResults();
 		positionCursor();
 		positionUserTyped();
@@ -657,8 +790,6 @@ public class MultiplicationEntity extends Entity {
 		}
 	}
 
-
-
 	private void appendTextToDS(String text, DrawableString targetDS) {
 		String textToAmend = targetDS.getText();
 		textToAmend += text;
@@ -671,11 +802,7 @@ public class MultiplicationEntity extends Entity {
 	}
 
 	private void clearUserTyped() {
-		if (state == State.WRITE_CARRY) {
-			userTypedDS.setText("-");
-		} else {
-			userTypedDS.setText("");
-		}
+		userTypedDS.setText("");
 		positionCursor();
 	}
 
@@ -692,9 +819,8 @@ public class MultiplicationEntity extends Entity {
 	}
 
 	private boolean shouldDrawCursor() {
-		if(remainderDS.getText() != "" || state == State.START)
-			return false;
-		
+		if (remainderDS.getText() != "" || state == State.START) return false;
+
 		if (timer.timerUp(cursorTimerKey)) {
 			drawCursor = !drawCursor;
 			timer.setTimer(cursorTimerKey, cursorDelay);
@@ -706,14 +832,24 @@ public class MultiplicationEntity extends Entity {
 	public void scale(float scaleX, float scaleY) {
 		this.scaleX = scaleX;
 		this.scaleY = scaleY;
-		this.multipliconDS.setScale(scaleX, scaleY);
+		this.additionDS.setScale(scaleX, scaleY);
 		this.numberDS.setScale(scaleX, scaleY);
-		//this.answerDS.setScale(scaleX, scaleY);
+		this.spacingProvider.setScale(scaleX, scaleY);
+		// this.answerDS.setScale(scaleX, scaleY);
 		this.multSymbolDS.setScale(scaleX, scaleY);
 		this.cursorDS.setScale(scaleX, scaleY);
 		this.userTypedDS.setScale(scaleX, scaleY);
 		this.remainderDS.setScale(scaleX * additionalScaleFactor, scaleY * additionalScaleFactor);
 		this.sizeSourceDS.setScale(scaleX, scaleY);
+		this.bottomAnswerDS.setScale(scaleX, scaleY);
+		this.userTypedDS.setScale(scaleX, scaleY);
+		for(int i = 0; i < carries.size(); ++i) {
+			ArrayList<DrawableString> column = carries.get(i);
+			for(int j = 0; j < column.size(); ++j) {
+				column.get(j).setScale(scaleX, scaleY);
+			}
+		}
+		
 		calculateSpaceOffsets();
 		for (int i = 0; i < aboveAdditionNumbers.size(); ++i) {
 			aboveAdditionNumbers.get(i).setScale(scaleX, scaleY);
@@ -729,11 +865,11 @@ public class MultiplicationEntity extends Entity {
 		positionNumberExtensions();
 	}
 
-	private void calculateSpaceOffsets() {	
+	private void calculateSpaceOffsets() {
 		spaceOffset = sizeSourceDS.width() * 0.2f;
 	}
 
 	public enum State {
-		START, MULT_ELEMENT, WRITE_CARRY, SUM_ROWS
+		START, ADD_ELEMENT_BOTTOM, DONE
 	}
 }

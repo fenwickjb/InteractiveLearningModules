@@ -108,7 +108,9 @@ public class DrawableCharBuffer {
 	}
 	
 	public void logic() {
-		
+		for(DrawableString charDS : buffer) {
+			charDS.logic();
+		}
 	}
 	
 	public String getText() {
@@ -124,5 +126,92 @@ public class DrawableCharBuffer {
 	
 	public float getCharWidth() {
 		return exampleDS.width();
+	}
+
+	public void setRed(int idx) {
+		buffer.get(idx).makeRed();
+	}
+	public void setBlue(int idx) {
+		buffer.get(idx).makeBlue();
+	}
+	public void setNormalColor(int idx) {
+		buffer.get(idx).unhighlight();
+	}
+
+	public int size() {
+		return buffer.size();
+	}
+	
+	public int length() {
+		return size();
+	}
+
+	public char getCharAt(int idx) {
+		return buffer.get(idx).getText().charAt(0);
+	}
+
+	public void setText(String string) {
+		//this method is going to be a bit resource wasteful
+		buffer.clear();
+		for(int i = 0; i < string.length(); ++ i) {
+			DrawableString newText = new DrawableString("" + string.charAt(i));
+			newText.setScale(scaleX, scaleY);
+			buffer.add(newText);
+		}
+		positionElements();
+		
+		//this method will need clearing of remainder buffer
+		// int i;
+		// for(i = 0; i < string.length(); ++i) {
+		// if(i < buffer.size()) {
+		// buffer.get(i).setText("" + string.charAt(i));
+		// } else {
+		// buffer.add(new DrawableString("" + string.charAt(i)));
+		// }
+		// }
+	}
+
+	public void append(String string) {
+		for(int i = 0; i < string.length(); ++ i) {
+			DrawableString charVal = new DrawableString("" + string.charAt(i));
+			charVal.setScale(scaleX, scaleY);
+			buffer.add(charVal);
+		}
+		positionElements();
+	}
+	
+	public void preappend(String string) {
+		int oldSize = buffer.size();
+		for(int i = 0; i < string.length(); ++i){
+			//create space for shifting
+			buffer.add(null);
+		}
+		for(int i = buffer.size() - 1; i > oldSize - 1; --i) {
+			//shift elements over
+			buffer.set(i, buffer.get(i - oldSize));
+		}
+		
+		for(int i = 0; i < string.length(); ++ i) {
+			DrawableString charVal = new DrawableString("" + string.charAt(i));
+			charVal.setScale(scaleX, scaleY);
+			buffer.set(i, charVal);
+		}
+		positionElements();
+	}
+	
+	public void preappend(DrawableString string) {
+		DrawableString previous = string;
+		
+		buffer.add(null);
+		for(int i = 0; i < buffer.size(); ++i) {
+			DrawableString newPrevious = buffer.get(i);
+			buffer.set(i, previous);
+			previous = newPrevious;
+		}
+		positionElements();
+	}
+
+	public DrawableString getCharObjectAt(int i) {
+		return buffer.get(i);
 	}
 }

@@ -16,6 +16,10 @@ import enigma.engine.TextureLookup;
 import enigma.engine.Timer;
 
 public class LongDivisionEntity extends Entity {
+	public enum State {
+		PICK_TOP_NUM, PICK_SUB_NUM, WRITE_SUB_RESULT
+	}
+	
 	private DrawableString denominatorDS;
 	private DrawableString numeratorDS;
 	private DrawableString answerDS;
@@ -46,6 +50,7 @@ public class LongDivisionEntity extends Entity {
 	private StringBuilder miniNumerator = new StringBuilder();
 	private String numeratorStr;
 	private int positionIdx;
+	private boolean active = true;
 
 	//private int base = 10;
 
@@ -76,6 +81,7 @@ public class LongDivisionEntity extends Entity {
 	
 	private boolean drawRemainder = true;
 	private boolean makeLastResultColored = false;
+	
 	
 
 	public LongDivisionEntity(int numerator, int denominator, float x, float y) {
@@ -318,7 +324,7 @@ public class LongDivisionEntity extends Entity {
 	}
 
 	public void IO() {
-		if (allowIO) {
+		if (allowIO && active) {
 
 			pollTypedNumbers();
 			if (Gdx.input.isKeyJustPressed(Input.Keys.BACKSPACE) || Gdx.input.isKeyJustPressed(Input.Keys.DEL)
@@ -645,7 +651,8 @@ public class LongDivisionEntity extends Entity {
 	}
 
 	private boolean shouldDrawCursor() {
-		if(remainderDS.getText() != "")
+		// if not active or module is done.
+		if(!active || remainderDS.getText() != "")
 			return false;
 		
 		if (timer.timerUp(cursorTimerKey)) {
@@ -687,7 +694,7 @@ public class LongDivisionEntity extends Entity {
 		spaceOffset = sizeSourceDS.width() * 0.2f;
 	}
 
-	public enum State {
-		PICK_TOP_NUM, PICK_SUB_NUM, WRITE_SUB_RESULT
+	public void setActive(boolean activationFlag) {
+		this.active = activationFlag;
 	}
 }
