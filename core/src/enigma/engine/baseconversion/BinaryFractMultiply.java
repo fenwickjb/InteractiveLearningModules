@@ -24,7 +24,6 @@ public class BinaryFractMultiply extends Entity {
 	private DrawableString multipliconDS;
 	private DrawableString numberDS;
 	//private DrawableString answerDS;
-	private DrawableString remainderDS;
 	private DrawableString multSymbolDS;
 	
 	private ArrayList<DrawableCharBuffer> answerRows = new ArrayList<DrawableCharBuffer>();
@@ -32,7 +31,6 @@ public class BinaryFractMultiply extends Entity {
 	private char multSymbol = 'x';
 	//private char multSymbol = '*';
 	
-	private float additionalScaleFactor = 1f;
 
 	private DrawableString cursorDS;
 	private boolean drawCursor = true;
@@ -57,7 +55,6 @@ public class BinaryFractMultiply extends Entity {
 
 	private ArrayList<DrawableString> aboveAdditionNumbers;
 	private ArrayList<DrawableString> columnResults;
-	private ArrayList<DrawableString> subNumbersExtensions;
 	private ArrayList<Float> subOffsets;
 	private ArrayList<Vector2> horrizontal1Points;
 	private ArrayList<Vector2> horrizontal2Points;
@@ -209,20 +206,7 @@ public class BinaryFractMultiply extends Entity {
 
 		}
 
-	}
-
-	private void positionNumberExtensions() {
-		for (int i = 0; i < subNumbersExtensions.size(); ++i) {
-			DrawableString adjacentResult = columnResults.get(i);
-			DrawableString extension = subNumbersExtensions.get(i);
-
-			float x = adjacentResult.getX();
-			float y = adjacentResult.getY();
-			extension.setLeftAlign();
-			extension.setXY(x, y);
-		}
-	}
-	
+	}	
 
 	private float getHeightTolerenace() {
 		return 0.2f * sizeSourceDS.height();

@@ -48,7 +48,6 @@ public class BinaryAdder extends Entity {
 
 	private int  number;
 	private int multiplicon;
-	private int remainder = 0;
 	private float x;
 	private float y;
 	private boolean allowIO = true;
@@ -57,40 +56,27 @@ public class BinaryAdder extends Entity {
 	boolean userInputActive = true;
 
 	// processing numerator fields
-	private StringBuilder miniNumerator = new StringBuilder();
 	private String numberStr;
 	private int positionIdx;
 
 	// compose the division bar
 	private Vector2 btmPointRight = new Vector2();
 	private Vector2 bottomLeftPoint = new Vector2();
-	private float lastDivisionResult;
 
 	private ArrayList<ArrayList<DrawableString>> carries;
 	
 	private ArrayList<DrawableString> aboveAdditionNumbers;
 	private ArrayList<DrawableString> columnResults;
 	private ArrayList<DrawableString> subNumbersExtensions;
-	private ArrayList<Integer> subLastAnswer;
-	private ArrayList<Integer> subAnswerLength;
 	private ArrayList<Float> subOffsets;
 	private ArrayList<Vector2> horrizontal1Points;
 	private ArrayList<Vector2> horrizontal2Points;
 
 	// LOGIC
-	private int additionPositionIndex = 0;
-	
-	private int lastPositionIdx = -1;
-	
-
 	private float extraFactor = 1.2f;
 	private DrawableString sizeSourceDS;
 	private float spaceOffset;
 
-	private StringBuilder valueToSubtractFrom = new StringBuilder();
-
-	private boolean drawRemainder = true;
-	private boolean makeLastResultColored = false;
 	private float scaleX;
 	private float scaleY;
 
@@ -143,13 +129,13 @@ public class BinaryAdder extends Entity {
 		// ELEMENT TO DELETE
 		// this.answerDS = new DrawableString("");
 		// this.answerDS.setRightAlign();
-		this.remainderDS = new DrawableString("");
-		subLastAnswer = new ArrayList<Integer>();
-		subAnswerLength = new ArrayList<Integer>();
-		subOffsets = new ArrayList<Float>();
-		subNumbersExtensions = new ArrayList<DrawableString>();
-		this.remainderDS.setScale(additionalScaleFactor, additionalScaleFactor);
-		this.remainderDS.makeRed();
+		//this.remainderDS = new DrawableString("");
+		//subLastAnswer = new ArrayList<Integer>();
+		//subAnswerLength = new ArrayList<Integer>();
+		//subOffsets = new ArrayList<Float>();
+		//subNumbersExtensions = new ArrayList<DrawableString>();
+		//this.remainderDS.setScale(additionalScaleFactor, additionalScaleFactor);
+		//this.remainderDS.makeRed();
 		// STOP DELETING
 
 		positionElements();
@@ -232,7 +218,7 @@ public class BinaryAdder extends Entity {
 		positionUserTyped();
 		positionSubtractionResults();
 		positionHorrizontalBars();
-		positionNumberExtensions();
+		//positionNumberExtensions();
 		positionCarries();
 	}
 
@@ -272,12 +258,12 @@ public class BinaryAdder extends Entity {
 	private void positionCursor() {
 		switch (state) {
 		case ADD_ELEMENT_BOTTOM: {
-			DrawableCharBuffer answerDS = numberCarries.get(numberCarries.size() - 1);
+			//DrawableCharBuffer answerDS = numberCarries.get(numberCarries.size() - 1);
 
 			float x = userTypedDS.getX();
 			float y = userTypedDS.getY();
-			float ansWidth = userTypedDS.width();
-			float userWidth = userTypedDS.width();
+			//float ansWidth = userTypedDS.width();
+			//float userWidth = userTypedDS.width();
 			// cursorDS.setXY(x + extraFactor * (ansWidth + userWidth), y);
 			cursorDS.setXY(x + spaceOffset, y);
 			break;
@@ -359,10 +345,6 @@ public class BinaryAdder extends Entity {
 		return 0.2f * sizeSourceDS.height();
 	}
 
-	private float getWidthTolerance() {
-		return 0.5f * (0.5f * additionDS.width() + 0.5f * numberDS.width());
-	}
-
 	@Override
 	public void draw(SpriteBatch batch) {
 		// Sprite and String drawings.
@@ -370,11 +352,11 @@ public class BinaryAdder extends Entity {
 		additionDS.draw(batch);
 		// answerDS.draw(batch);
 		multSymbolDS.draw(batch);
-		if (drawRemainder) {
-			remainderDS.draw(batch);
-		}
-		drawSubtractionElements(batch);
-		drawNumberExtensions(batch);
+//		if (drawRemainder) {
+//			remainderDS.draw(batch);
+//		}
+		//drawSubtractionElements(batch);
+		//drawNumberExtensions(batch);
 		userTypedDS.draw(batch);
 		bottomAnswerDS.draw(batch);
 		
@@ -413,19 +395,6 @@ public class BinaryAdder extends Entity {
 		sr.setColor(r, g, b, a);
 
 		batch.begin(); // restore the sprite batch rendering.
-	}
-
-	private void drawSubtractionElements(SpriteBatch batch) {
-		for (int i = 0; i < aboveAdditionNumbers.size(); ++i) {
-			aboveAdditionNumbers.get(i).draw(batch);
-			columnResults.get(i).draw(batch);
-		}
-	}
-
-	private void drawNumberExtensions(SpriteBatch batch) {
-		for (int i = 0; i < subNumbersExtensions.size(); ++i) {
-			subNumbersExtensions.get(i).draw(batch);
-		}
 	}
 
 	@Override
@@ -658,69 +627,6 @@ public class BinaryAdder extends Entity {
 //		lastPositionIdx = positionIdx;
 //	}
 
-	private void handlePickSubNum() {
-		String userInput = userTypedDS.getText();
-		userInput = userInput.substring(1, userInput.length());
-		boolean moveToNextStep = false;
-
-		int multNum = subLastAnswer.get(subLastAnswer.size() - 1);
-		// int correctSubValue = multNum * multiplicon;
-		// if (userInput.length() > 0) {
-		// // user typed something, check validity.
-		// if (checkIfUserTyped(correctSubValue)) {
-		// moveToNextStep = true;
-		// } else {
-		// clearUserTyped();
-		// }
-		// } else {
-		// // user did not provide answer, show solution.
-		// moveToNextStep = true;
-		// }
-		//
-		// if (moveToNextStep) {
-		// DrawableString subNum = aboveAdditionNumbers.get(aboveAdditionNumbers.size()
-		// - 1);
-		// subNum.setText("-" + correctSubValue);
-		// clearUserTyped();
-		// transitionTo(State.WRITE_SUB_RESULT, -1);
-		// }
-
-	}
-
-	private void handleWriteSubResult() {
-		String userInput = userTypedDS.getText();
-		boolean moveToNextStep = false;
-
-		int subtractionNumber = Math
-				.abs(Integer.parseInt(aboveAdditionNumbers.get(aboveAdditionNumbers.size() - 1).getText()));
-
-		int fromNum = Integer.parseInt(valueToSubtractFrom.toString());
-		int resultValue = fromNum - subtractionNumber;
-
-		if (userInput.length() > 0) {
-			// user typed something, check if it is correct.
-			moveToNextStep = checkIfUserTyped(resultValue);
-
-		} else {
-			// user didn't type something, show them the answer.
-			moveToNextStep = true;
-		}
-
-		if (moveToNextStep) {
-			valueToSubtractFrom.setLength(0);
-			valueToSubtractFrom.append("" + resultValue);
-
-			DrawableString retNum = columnResults.get(columnResults.size() - 1);
-			retNum.setText("" + resultValue);
-			clearUserTyped();
-			transitionTo(State.ADD_ELEMENT_BOTTOM, -1);
-		} else {
-			// let user change what they typed instead of clobbering it.
-			// clearUserTyped(); //uncomment if you want this to clobber their input.
-		}
-
-	}
-
 	private void transitionTo(State newState, int passedValueIfNecessary) {
 		state = newState;
 		switch (state) {
@@ -759,25 +665,7 @@ public class BinaryAdder extends Entity {
 		clearUserTyped();
 		positionCursor();
 		positionUserTyped();
-		positionNumberExtensions();
-	}
-
-	private void preparePickSubNum(int resultOfLastPickTop) {
-
-		positionSubtractionResults();
-		positionCursor();
-		positionUserTyped();
-	}
-
-	private void prepareWriteSubResult() {
-		horrizontal1Points.add(new Vector2(0, 0));
-		horrizontal2Points.add(new Vector2(0, 0));
-		positionHorrizontalBars();
-
-		clearUserTyped();
-		positionCursor();
-		positionUserTyped();
-
+		//positionNumberExtensions();
 	}
 
 	private void positionHorrizontalBars() {
@@ -790,13 +678,6 @@ public class BinaryAdder extends Entity {
 		}
 	}
 
-	private void appendTextToDS(String text, DrawableString targetDS) {
-		String textToAmend = targetDS.getText();
-		textToAmend += text;
-		targetDS.setText(textToAmend);
-		positionCursor();
-	}
-
 	protected String getUserText() {
 		return userTypedDS.getText();
 	}
@@ -806,20 +687,8 @@ public class BinaryAdder extends Entity {
 		positionCursor();
 	}
 
-	private boolean checkIfUserTyped(int targeNumber) {
-		String userText = userTypedDS.getText();
-
-		// user didn't type anything, show them an answer.
-		if (userText == "") return true;
-
-		// this should take care of the minus sign; the user cannot type minus.
-		int userNumber = Math.abs(Integer.parseInt(userText));
-
-		return userNumber == targeNumber;
-	}
-
 	private boolean shouldDrawCursor() {
-		if (remainderDS.getText() != "" || state == State.START) return false;
+		if (state == State.START) return false;
 
 		if (timer.timerUp(cursorTimerKey)) {
 			drawCursor = !drawCursor;

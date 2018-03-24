@@ -16,6 +16,7 @@ import enigma.engine.Entity;
 import enigma.engine.TextureLookup;
 import enigma.engine.Timer;
 
+@SuppressWarnings("unused")
 public class MultiplicationEntity extends Entity {
 	private DrawableCharBuffer multipliconDS;
 	private DrawableCharBuffer numberDS;
@@ -32,8 +33,6 @@ public class MultiplicationEntity extends Entity {
 	private int topNumberIdx = 0;
 	private int multiconIdx = 0;
 
-	private float scaleX;
-	private float scaleY;
 	private float additionalScaleFactor = 1f;
 
 	private DrawableString cursorDS;
@@ -43,9 +42,6 @@ public class MultiplicationEntity extends Entity {
 	private String cursorTimerKey = "C";
 	private long cursorDelay = 400;
 
-	private float number;
-	private float multiplicon;
-	private int remainder = 0;
 	private float x;
 	private float y;
 	private boolean allowIO = true;
@@ -61,13 +57,11 @@ public class MultiplicationEntity extends Entity {
 	// compose the division bar
 	private Vector2 btmPointRight = new Vector2();
 	private Vector2 bottomLeftPoint = new Vector2();
-	private float lastDivisionResult;
 
 	private ArrayList<DrawableString> aboveAdditionNumbers;
 	private ArrayList<DrawableString> columnResults;
 	private ArrayList<DrawableString> subNumbersExtensions;
 	private ArrayList<Integer> subLastAnswer;
-	private ArrayList<Integer> subAnswerLength;
 	private ArrayList<Float> subOffsets;
 	private ArrayList<Vector2> horrizontal1Points;
 	private ArrayList<Vector2> horrizontal2Points;
@@ -83,16 +77,12 @@ public class MultiplicationEntity extends Entity {
 	private StringBuilder valueToSubtractFrom = new StringBuilder();
 	
 	private boolean drawRemainder = true;
-	private boolean makeLastResultColored = false;
 	
 	
 
 	public MultiplicationEntity(float number, float multiplicon, float x, float y, boolean start) {
 		this.multipliconDS = new DrawableCharBuffer(filterZeros("" + multiplicon));
 		this.numberDS = new DrawableCharBuffer("" + number);
-		
-		this.number = number;
-		this.multiplicon = multiplicon;
 		
 		this.multSymbolDS = new DrawableString("" + multSymbol);
 		this.multSymbolDS.setRightAlign();
@@ -127,7 +117,7 @@ public class MultiplicationEntity extends Entity {
 		//this.answerDS.setRightAlign();
 		this.remainderDS = new DrawableString("");
 		subLastAnswer = new ArrayList<Integer>();
-		subAnswerLength = new ArrayList<Integer>();
+		//subAnswerLength = new ArrayList<Integer>();
 		subOffsets = new ArrayList<Float>();
 		subNumbersExtensions = new ArrayList<DrawableString>();
 		this.remainderDS.setScale(additionalScaleFactor, additionalScaleFactor);
@@ -202,8 +192,8 @@ public class MultiplicationEntity extends Entity {
 			
 			float x = answerDS.getX();
 			float y = answerDS.getY();
-			float ansWidth = answerDS.width();
-			float userWidth = userTypedDS.width();
+			//float ansWidth = answerDS.width();
+			//float userWidth = userTypedDS.width();
 			//cursorDS.setXY(x + extraFactor * (ansWidth + userWidth), y);
 			cursorDS.setXY(x + spaceOffset, y);
 			break;
@@ -296,9 +286,9 @@ public class MultiplicationEntity extends Entity {
 		return 0.2f * sizeSourceDS.height();
 	}
 
-	private float getWidthTolerance() {
-		return 0.5f * (0.5f * multipliconDS.width() + 0.5f * numberDS.width());
-	}
+//	private float getWidthTolerance() {
+//		return 0.5f * (0.5f * multipliconDS.width() + 0.5f * numberDS.width());
+//	}
 
 	@Override
 	public void draw(SpriteBatch batch) {
@@ -704,8 +694,6 @@ public class MultiplicationEntity extends Entity {
 	}
 
 	public void scale(float scaleX, float scaleY) {
-		this.scaleX = scaleX;
-		this.scaleY = scaleY;
 		this.multipliconDS.setScale(scaleX, scaleY);
 		this.numberDS.setScale(scaleX, scaleY);
 		//this.answerDS.setScale(scaleX, scaleY);
