@@ -639,20 +639,24 @@ public class LongDivisionEntity extends Entity {
 	}
 
 	private boolean checkIfUserTyped(int targeNumber) {
-		String userText = userTypedDS.getText();
+		try {
+			String userText = userTypedDS.getText();
 
-		// user didn't type anything, show them an answer.
-		if (userText == "") return true;
+			// user didn't type anything, show them an answer.
+			if (userText == "") return true;
 
-		// this should take care of the minus sign; the user cannot type minus.
-		int userNumber = Math.abs(Integer.parseInt(userText));
+			// this should take care of the minus sign; the user cannot type minus.
+			int userNumber = Math.abs(Integer.parseInt(userText));
 
-		return userNumber == targeNumber;
+			return userNumber == targeNumber;
+		} catch (Exception e) {
+			return false;
+		}
 	}
 
 	private boolean shouldDrawCursor() {
 		// if not active or module is done.
-		if(!active || remainderDS.getText() != "")
+		if(!active || !remainderDS.getText().equals(""))
 			return false;
 		
 		if (timer.timerUp(cursorTimerKey)) {
@@ -696,5 +700,27 @@ public class LongDivisionEntity extends Entity {
 
 	public void setActive(boolean activationFlag) {
 		this.active = activationFlag;
+	}
+	
+	public void setPosition(float x, float y) {
+		this.x = x;
+		this.y = y;
+		positionElements();
+	}
+
+	public float getWidth() {
+		float width = 0;
+		width = 2 * getWidthTolerance();
+		width += numeratorDS.width();
+		width += denominatorDS.width();
+		return width;
+	}
+
+	public boolean isDone() {
+		return !remainderDS.getText().equals(""); 
+	}
+
+	public int result() {
+		return numerator / denominator;
 	}
 }

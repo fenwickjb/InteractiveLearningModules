@@ -10,6 +10,8 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
 public class Game extends ApplicationAdapter implements InputProcessor {
+	public static final boolean DEBUG = true; 
+	
 	// graphics fields
 	private SpriteBatch batch;
 	private OrthographicCamera camera;

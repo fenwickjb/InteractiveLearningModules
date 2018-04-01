@@ -68,4 +68,12 @@ public class Tools {
 	public static float convertSpeedTo60FPSValue(float rawSpeed) {
 		return 60f * rawSpeed;
 	}
+	
+	public static String trimFloat(float fractional, int trimLength) {
+		String fractionalStr = "" + fractional;
+		if(fractionalStr.length() > trimLength) {
+			fractionalStr = fractionalStr.substring(0, trimLength);
+		}
+		return fractionalStr;
+	}
 }

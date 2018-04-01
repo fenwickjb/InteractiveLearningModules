@@ -28,9 +28,7 @@ public class BinaryFractMultiply extends Entity {
 	
 	private ArrayList<DrawableCharBuffer> answerRows = new ArrayList<DrawableCharBuffer>();
 	
-	private char multSymbol = 'x';
-	//private char multSymbol = '*';
-	
+	private char addSymbol = 'x';
 
 	private DrawableString cursorDS;
 	private boolean drawCursor = true;
@@ -59,23 +57,25 @@ public class BinaryFractMultiply extends Entity {
 	private ArrayList<Vector2> horrizontal1Points;
 	private ArrayList<Vector2> horrizontal2Points;
 
-	private DrawableString userTypedDS;
+	private DrawableCharBuffer userTypedDS;
 	private DrawableString sizeSourceDS;
 	private float spaceOffset;
 
 	private boolean done = false;
 	private boolean active = true;
 	
+	 
+	
 	
 
-	public BinaryFractMultiply(float number, float multiplicon, float x, float y, boolean start) {
+	public BinaryFractMultiply(float number, float x, float y, boolean start) {
 		this.multipliconDS = new DrawableString(filterZeros("" + multiplicon));
 		this.numberDS = new DrawableString("" + number);
 		
 		this.number = number;
-		this.multiplicon = multiplicon;
+		this.multiplicon = 2;// multiplicon;
 		
-		this.multSymbolDS = new DrawableString("" + multSymbol);
+		this.multSymbolDS = new DrawableString("" + addSymbol);
 		this.multSymbolDS.setRightAlign();
 		
 		this.cursorDS = new DrawableString("|");
@@ -94,7 +94,7 @@ public class BinaryFractMultiply extends Entity {
 		this.timer = new Timer();
 		timer.setTimer(cursorTimerKey, cursorDelay);
 
-		userTypedDS = new DrawableString("");
+		userTypedDS = new DrawableCharBuffer("");
 		answerRows.add(new DrawableCharBuffer(""));
 		
 		positionElements();
@@ -203,9 +203,7 @@ public class BinaryFractMultiply extends Entity {
 
 			result.setRightAlign();
 			result.setXY(xPosition, retY);
-
 		}
-
 	}	
 
 	private float getHeightTolerenace() {
@@ -219,7 +217,7 @@ public class BinaryFractMultiply extends Entity {
 		multipliconDS.draw(batch);
 		multSymbolDS.draw(batch);
 		userTypedDS.draw(batch);
-
+		
 		if (shouldDrawCursor()) {
 			cursorDS.draw(batch);
 		}
@@ -249,8 +247,6 @@ public class BinaryFractMultiply extends Entity {
 
 		batch.begin(); // restore the sprite batch rendering.
 	}
-
-
 
 	@Override
 	public void logic() {
@@ -398,5 +394,35 @@ public class BinaryFractMultiply extends Entity {
 
 	public void setActive(boolean activate) {
 		this.active = activate;
+	}
+
+	public void setPosition(float newX, float newY) {
+		this.x = newX;
+		this.y = newY;
+		positionElements();
+		//positionSubtractionResults(); //maybe refactor position elements to do all the work. 
+	}
+
+	public float getWidth() {
+		calculateSpaceOffsets();
+		float width = getHeightTolerenace();
+		width += numberDS.width();
+		return width;
+	}
+
+	public boolean isDone() {
+		return done;
+	}
+
+	public float result() {
+		if(done /*answerRows.size() > 0 */) {
+			return Float.parseFloat(userTypedDS.getText());
+		} else {
+			return 0f;
+		}
+	}
+
+	public void colorWholeDigit() {
+		userTypedDS.setBlue(0);
 	}
 }

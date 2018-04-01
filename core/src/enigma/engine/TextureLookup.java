@@ -20,6 +20,7 @@ public class TextureLookup {
 	public static Texture arrowUpSmall;
 	public static Texture redX;
 	public static Texture greenCheckMark;
+	public static Texture sNotationLoop;
 	
 	public static Texture qsortSwapQmarkIcon;
 	public static Texture qsortHidePivotIcon;
@@ -72,6 +73,8 @@ public class TextureLookup {
 		qsortHidePivotIcon = loadTexture("HidePivot.png");
 		qsortRestorePivotIcon = loadTexture("RestorePivot.png");
 		qsortSwapQmarkIcon = loadTexture("SwapQmark.png");
+		
+		sNotationLoop = loadTexture("SNotation.png");
 	}
 	
 	private static Texture loadTexture(String name) {

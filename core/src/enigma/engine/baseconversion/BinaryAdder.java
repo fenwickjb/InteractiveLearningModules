@@ -504,11 +504,11 @@ public class BinaryAdder extends Entity {
 	private void handleTypeBottom() {
 		try {
 			// check if user is done.
-			if (positionIdx >= solution.length()) {
-				transitionTo(State.DONE, -1);
-				drawCursor = false;
-				return;
-			}
+			// if (positionIdx >= solution.length()) {
+			// transitionTo(State.DONE, -1);
+			// drawCursor = false;
+			// return;
+			// }
 			
 			
 			int top = 0;
@@ -584,6 +584,10 @@ public class BinaryAdder extends Entity {
 					}
 				}
 				positionUserTyped();
+				if (positionIdx >= solution.length()) {
+					transitionTo(State.DONE, -1);
+					return;
+				}
 			}
 		} catch (Exception e) {
 			// prevent crashes when user types non-integers.
@@ -688,7 +692,7 @@ public class BinaryAdder extends Entity {
 	}
 
 	private boolean shouldDrawCursor() {
-		if (state == State.START) return false;
+		if (state == State.START || state == State.DONE) return false;
 
 		if (timer.timerUp(cursorTimerKey)) {
 			drawCursor = !drawCursor;
