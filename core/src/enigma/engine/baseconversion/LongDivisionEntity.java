@@ -315,7 +315,11 @@ public class LongDivisionEntity extends Entity {
 
 	@Override
 	public void logic() {
-
+		
+		numeratorDS.logic();
+		answerDS.logic();
+		denominatorDS.logic();
+		remainderDS.logic();
 	}
 
 	@Override
@@ -722,5 +726,45 @@ public class LongDivisionEntity extends Entity {
 
 	public int result() {
 		return numerator / denominator;
+	}
+
+	public String getRemainder() {
+		return "" + remainder; //trim off the R
+	}
+	
+	public DrawableString getRemainderDS() {
+		return remainderDS;
+	}
+
+	public float getX() {
+		return x;
+	}
+
+	public float getY() {
+		return y;
+	}
+
+	public void interpolateTo(float x, float y) {
+		float cacheX = this.x;
+		float cacheY = this.y;
+		setPosition(x, y);
+		
+		float numerX = numeratorDS.getX();
+		float numerY = numeratorDS.getY();
+		
+		float denoX = denominatorDS.getX();
+		float denoY = denominatorDS.getY();
+		
+		float ansX = answerDS.getX();
+		float ansY = answerDS.getY();
+		
+		float remX = remainderDS.getX();
+		float remY = remainderDS.getY();
+		
+		setPosition(cacheX, cacheY);
+		numeratorDS.interpolateTo(numerX, numerY);
+		denominatorDS.interpolateTo(denoX, denoY);
+		answerDS.interpolateTo(ansX, ansY);
+		remainderDS.interpolateTo(remX, remY);
 	}
 }

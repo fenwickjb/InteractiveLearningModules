@@ -19,6 +19,8 @@ public class FractionalNumberBinaryConverter {
 	private float scaleY = 1;
 	private boolean complete = false;
 	private float shrinkFactor = 0.45f;
+	private int multLimit = Integer.MAX_VALUE;
+	private boolean finalScaleResultScaled = false;
 
 	public FractionalNumberBinaryConverter(float number) {
 		components = new ArrayList<BinaryFractMultiply>();
@@ -40,7 +42,7 @@ public class FractionalNumberBinaryConverter {
 		for(int i = 0; i < components.size(); ++i) {
 			BinaryFractMultiply mult = components.get(i);
 			float newX = lastX + lastWidth + ((i == 0) ? 0 : spacing);
-			if(i != components.size() -1 || i == 0) {
+			if(i != components.size() -1 || i == 0 || i == (multLimit - 1)) {
 				mult.setPosition(newX, y);
 			} else {
 				mult.setPosition(newX + 0.5f * mult.getWidth(), y);
@@ -58,11 +60,9 @@ public class FractionalNumberBinaryConverter {
 				components.get(i).scale(shrinkFactor* scaleX, shrinkFactor* scaleY);
 			} else {
 				//go ahead and scale element if they're done.
-//				BinaryFractMultiply comp = components.get(i);
-//				int result = comp.result();
-//				if(result == 0 && comp.isDone()) {
-//					components.get(i).scale(shrinkFactor* scaleX, shrinkFactor* scaleY);
-//				}
+				if (isDone() && components.get(i).isDone()) {
+					components.get(i).scale(shrinkFactor* scaleX, shrinkFactor* scaleY);
+				}
 			}
 		}				
 	}
@@ -84,6 +84,17 @@ public class FractionalNumberBinaryConverter {
 		for(BinaryFractMultiply entity : components) {
 			entity.logic();
 		}
+		
+		//when the user is done, make sure the last component is correctly positioned and colored. 
+		if(isDone()) {
+			if(!finalScaleResultScaled) {
+				positionElements();
+				components.get(components.size() - 1).colorWholeDigit();
+				finalScaleResultScaled = true;
+			}
+			return;
+		}
+		
 		BinaryFractMultiply last = components.get(components.size() - 1);
 		if(last.isDone()) {
 			last.colorWholeDigit();
@@ -94,6 +105,7 @@ public class FractionalNumberBinaryConverter {
 			}
 			if(result == 0 || shouldStopCreatingNewMultiplications()) {
 				//binary conversion is done. 
+				positionElements();
 			} else {
 				//there are still digits to be processed.
 				BinaryFractMultiply newComp = new BinaryFractMultiply(result, x, y, true);
@@ -110,7 +122,7 @@ public class FractionalNumberBinaryConverter {
 	}
 	
 	private boolean shouldStopCreatingNewMultiplications() {
-		return false;
+		return components.size() >= multLimit;
 	}
 
 	public void draw(SpriteBatch batch) {
@@ -126,6 +138,34 @@ public class FractionalNumberBinaryConverter {
 	}
 	
 	public boolean isDone() {
-		return complete;
+		return complete 
+				|| (components.size() == multLimit && components.get(components.size() -1).isDone());
+	}
+
+	public void setLimitMultiplications(int limitMultiplications) {
+		this.multLimit = limitMultiplications;
+	}
+
+	public String getDigitsString() {
+		if(!isDone())
+			return null;
+		
+		String result = "";
+
+		for(BinaryFractMultiply comp : components) {
+			result += comp.getResultText().charAt(0);
+		}
+		
+		return result;
+	}
+
+	public float getWholeResultLocX(int index) {
+		BinaryFractMultiply comp= components.get(index);
+		return comp.getWholeDS().getX();
+	}
+
+	public float getWholeResultLocY(int index) {
+		BinaryFractMultiply comp= components.get(index);
+		return comp.getWholeDS().getY();
 	}
 }

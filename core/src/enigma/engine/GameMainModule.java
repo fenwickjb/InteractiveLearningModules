@@ -4,6 +4,7 @@ import com.badlogic.gdx.graphics.OrthographicCamera;
 
 import enigma.engine.baseconversion.BaseConversionModule;
 import enigma.engine.baseconversion.FractionalBinaryModule;
+import enigma.engine.baseconversion.IEEEFloat16Converter;
 import enigma.engine.basicmath.LongDivisionModule;
 import enigma.engine.basicmath.MultiplicationModule;
 import enigma.engine.floatingpoint.MasterFloatingPointModule;
@@ -35,7 +36,7 @@ enum module
 
 public class GameMainModule extends CourseModule {
 
-	public static final module compileTimeModuleSetting = module.BINARY_RADEX;
+	public static final module compileTimeModuleSetting = module.FLOAT_POINT;
 	
 	public GameMainModule(OrthographicCamera camera) {
 		super(camera);
@@ -48,7 +49,8 @@ public class GameMainModule extends CourseModule {
 			subModules.add(new MasterFSMModule(camera));
 			break;
 		case FLOAT_POINT:
-			subModules.add(new MasterFloatingPointModule(camera));
+			//subModules.add(new MasterFloatingPointModule(camera));
+			subModules.add(new IEEEFloat16Converter(camera));
 			break;
 		case QSORT_INSTRUCTION:
 			subModules.add(new QSortInstructionModule(camera));

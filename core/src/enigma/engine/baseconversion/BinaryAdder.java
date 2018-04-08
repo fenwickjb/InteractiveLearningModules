@@ -24,10 +24,10 @@ public class BinaryAdder extends Entity {
 	// private DrawableString answerDS;
 	private DrawableString remainderDS;
 	private DrawableString multSymbolDS;
-	private DrawableCharBuffer userTypedDS;
+	private DrawableCharBuffer userTypedDCB;
 
 	private String solution = "";
-	
+
 	private ArrayList<DrawableCharBuffer> numberCarries = new ArrayList<DrawableCharBuffer>();
 
 	private boolean colorCode = true;
@@ -46,7 +46,7 @@ public class BinaryAdder extends Entity {
 	private String cursorTimerKey = "C";
 	private long cursorDelay = 400;
 
-	private int  number;
+	private int number;
 	private int multiplicon;
 	private float x;
 	private float y;
@@ -64,7 +64,7 @@ public class BinaryAdder extends Entity {
 	private Vector2 bottomLeftPoint = new Vector2();
 
 	private ArrayList<ArrayList<DrawableString>> carries;
-	
+
 	private ArrayList<DrawableString> aboveAdditionNumbers;
 	private ArrayList<DrawableString> columnResults;
 	private ArrayList<DrawableString> subNumbersExtensions;
@@ -87,12 +87,12 @@ public class BinaryAdder extends Entity {
 	public BinaryAdder(String number, String addition, float x, float y, boolean start) {
 		this.additionDS = new DrawableCharBuffer(filterZeros("" + addition));
 		this.numberDS = new DrawableCharBuffer("" + number);
-		//this.spacingProvider = new DrawableCharBuffer("" + number);
+		// this.spacingProvider = new DrawableCharBuffer("" + number);
 		this.spacingProvider = new DrawableCharBuffer("");
 		this.bottomAnswerDS = new DrawableCharBuffer("");
 
-		 this.number = Integer.parseInt(number, 2);
-		 this.multiplicon = Integer.parseInt(addition, 2);
+		this.number = Integer.parseInt(number, 2);
+		this.multiplicon = Integer.parseInt(addition, 2);
 
 		this.multSymbolDS = new DrawableString("" + addSymbol);
 		this.multSymbolDS.setRightAlign();
@@ -115,46 +115,46 @@ public class BinaryAdder extends Entity {
 		this.timer = new Timer();
 		timer.setTimer(cursorTimerKey, cursorDelay);
 
-		userTypedDS = new DrawableCharBuffer("");
+		userTypedDCB = new DrawableCharBuffer("");
 		numberCarries.add(new DrawableCharBuffer(""));
 
 		topNumberIdx = numberDS.size() - 1;
 		resultIdx = additionDS.size() - 1;
 
 		carries = new ArrayList<ArrayList<DrawableString>>();
-		for(int i = 0; i < numberDS.length(); ++i) {
+		for (int i = 0; i < numberDS.length(); ++i) {
 			addNewCarryColumn();
 		}
-		
+
 		// ELEMENT TO DELETE
 		// this.answerDS = new DrawableString("");
 		// this.answerDS.setRightAlign();
-		//this.remainderDS = new DrawableString("");
-		//subLastAnswer = new ArrayList<Integer>();
-		//subAnswerLength = new ArrayList<Integer>();
-		//subOffsets = new ArrayList<Float>();
-		//subNumbersExtensions = new ArrayList<DrawableString>();
-		//this.remainderDS.setScale(additionalScaleFactor, additionalScaleFactor);
-		//this.remainderDS.makeRed();
+		// this.remainderDS = new DrawableString("");
+		// subLastAnswer = new ArrayList<Integer>();
+		// subAnswerLength = new ArrayList<Integer>();
+		// subOffsets = new ArrayList<Float>();
+		// subNumbersExtensions = new ArrayList<DrawableString>();
+		// this.remainderDS.setScale(additionalScaleFactor, additionalScaleFactor);
+		// this.remainderDS.makeRed();
 		// STOP DELETING
 
 		positionElements();
 
 		calculateSolution();
-		
+
 		if (start) {
 			nextStep();
 		}
 	}
-	
+
 	private void calculateSolution() {
 		try {
 			int result = number + multiplicon;
 			solution = Integer.toBinaryString(result);
-		} catch (Exception e ) {
-			//Gdx.app.log(tag, message);
+		} catch (Exception e) {
+			// Gdx.app.log(tag, message);
 		}
-		
+
 	}
 
 	private void addNewCarryColumn() {
@@ -181,10 +181,10 @@ public class BinaryAdder extends Entity {
 		reapplyScale();
 		calculateSpaceOffsets();
 		numberDS.setXY(x, y);
-		//spacingProvider.setLeftAlign();
+		// spacingProvider.setLeftAlign();
 		spacingProvider.setRightAlign();
 		spacingProvider.setXY(x + numberDS.width() / 2, y);
-		
+
 		bottomAnswerDS.setRightAlign();
 
 		float halfNumerWidth = numberDS.width() / 2;
@@ -218,26 +218,26 @@ public class BinaryAdder extends Entity {
 		positionUserTyped();
 		positionSubtractionResults();
 		positionHorrizontalBars();
-		//positionNumberExtensions();
+		// positionNumberExtensions();
 		positionCarries();
 	}
 
 	private void positionCarries() {
-		while(spacingProvider.size() < carries.size()) {
-			spacingProvider.preappend("0"); //this is a very costly operation.
+		while (spacingProvider.size() < carries.size()) {
+			spacingProvider.preappend("0"); // this is a very costly operation.
 		}
-		
+
 		for (int index = 0; index < carries.size(); ++index) {
 			int spacingSize = spacingProvider.size();
-			if(spacingSize == 0) return;
-			
+			if (spacingSize == 0) return;
+
 			DrawableString spacer = spacingProvider.getCharObjectAt((spacingSize - 1) - index);
 			float x = spacer.getX();
 			float y = spacer.getY();
 
 			ArrayList<DrawableString> carryColumn = carries.get(index);
-			for(int row = 0; row < carryColumn.size(); ++row) {
-				DrawableString ds = carryColumn.get(row); 
+			for (int row = 0; row < carryColumn.size(); ++row) {
+				DrawableString ds = carryColumn.get(row);
 				ds.setXY(x, y + (row + 1) * (ds.height() + spaceOffset));
 			}
 		}
@@ -246,24 +246,24 @@ public class BinaryAdder extends Entity {
 	private void positionAnswer() {
 		float x = additionDS.getX();
 		float y = additionDS.getY();
-		
-		bottomAnswerDS.setXY(x , y - (additionDS.height() + 2 * spaceOffset));
+
+		bottomAnswerDS.setXY(x, y - (additionDS.height() + 2 * spaceOffset));
 	}
 
 	private void reapplyScale() {
-		userTypedDS.setScale(scaleX, scaleY);
-		
+		userTypedDCB.setScale(scaleX, scaleY);
+
 	}
 
 	private void positionCursor() {
 		switch (state) {
 		case ADD_ELEMENT_BOTTOM: {
-			//DrawableCharBuffer answerDS = numberCarries.get(numberCarries.size() - 1);
+			// DrawableCharBuffer answerDS = numberCarries.get(numberCarries.size() - 1);
 
-			float x = userTypedDS.getX();
-			float y = userTypedDS.getY();
-			//float ansWidth = userTypedDS.width();
-			//float userWidth = userTypedDS.width();
+			float x = userTypedDCB.getX();
+			float y = userTypedDCB.getY();
+			// float ansWidth = userTypedDS.width();
+			// float userWidth = userTypedDS.width();
 			// cursorDS.setXY(x + extraFactor * (ansWidth + userWidth), y);
 			cursorDS.setXY(x + spaceOffset, y);
 			break;
@@ -276,27 +276,27 @@ public class BinaryAdder extends Entity {
 	private void positionUserTyped() {
 		switch (state) {
 		case ADD_ELEMENT_BOTTOM: {
-			//DrawableCharBuffer answerDS = numberCarries.get(numberCarries.size() - 1);
+			// DrawableCharBuffer answerDS = numberCarries.get(numberCarries.size() - 1);
 			DrawableString spotDS = null;
 			float x;
 			float y;
-			if(positionIdx < numberDS.length()) {
-				spotDS = numberDS.getCharObjectAt((numberDS.length() - 1) -positionIdx);
+			if (positionIdx < numberDS.length()) {
+				spotDS = numberDS.getCharObjectAt((numberDS.length() - 1) - positionIdx);
 				x = spotDS.getX();
 				y = spotDS.getY();
 			} else if (positionIdx < carries.size()) {
-				//there must be an extra carry if this branch is hit, it must be 1; not null.
+				// there must be an extra carry if this branch is hit, it must be 1; not null.
 				spotDS = carries.get(positionIdx).get(0);
 				x = spotDS.getX();
 				y = numberDS.getCharObjectAt(0).getY();
-				
+
 			} else {
 				return;
 			}
 			float width = spotDS.width();
-			userTypedDS.setRightAlign();
+			userTypedDCB.setRightAlign();
 			// userTypedDS.setXY(x + (extraFactor * width), y);
-			userTypedDS.setXY(x + width + spaceOffset, y - 4*(spotDS.height() + 2 * spaceOffset));
+			userTypedDCB.setXY(x + width + spaceOffset, y - 4 * (spotDS.height() + 2 * spaceOffset));
 			break;
 		}
 		default:
@@ -330,15 +330,15 @@ public class BinaryAdder extends Entity {
 	}
 
 	private void positionNumberExtensions() {
-		for (int i = 0; i < subNumbersExtensions.size(); ++i) {
-			DrawableString adjacentResult = columnResults.get(i);
-			DrawableString extension = subNumbersExtensions.get(i);
-
-			float x = adjacentResult.getX();
-			float y = adjacentResult.getY();
-			extension.setLeftAlign();
-			extension.setXY(x, y);
-		}
+		// for (int i = 0; i < subNumbersExtensions.size(); ++i) {
+		// DrawableString adjacentResult = columnResults.get(i);
+		// DrawableString extension = subNumbersExtensions.get(i);
+		//
+		// float x = adjacentResult.getX();
+		// float y = adjacentResult.getY();
+		// extension.setLeftAlign();
+		// extension.setXY(x, y);
+		// }
 	}
 
 	private float getHeightTolerenace() {
@@ -352,17 +352,17 @@ public class BinaryAdder extends Entity {
 		additionDS.draw(batch);
 		// answerDS.draw(batch);
 		multSymbolDS.draw(batch);
-//		if (drawRemainder) {
-//			remainderDS.draw(batch);
-//		}
-		//drawSubtractionElements(batch);
-		//drawNumberExtensions(batch);
-		userTypedDS.draw(batch);
+		// if (drawRemainder) {
+		// remainderDS.draw(batch);
+		// }
+		// drawSubtractionElements(batch);
+		// drawNumberExtensions(batch);
+		userTypedDCB.draw(batch);
 		bottomAnswerDS.draw(batch);
-		
-		for(int i = 0; i < carries.size(); ++i) {
+
+		for (int i = 0; i < carries.size(); ++i) {
 			ArrayList<DrawableString> column = carries.get(i);
-			for(int j = 0; j < column.size(); ++j) {
+			for (int j = 0; j < column.size(); ++j) {
 				column.get(j).draw(batch);
 			}
 		}
@@ -399,9 +399,9 @@ public class BinaryAdder extends Entity {
 
 	@Override
 	public void logic() {
-		for(int i = 0; i < carries.size(); ++i) {
+		for (int i = 0; i < carries.size(); ++i) {
 			ArrayList<DrawableString> column = carries.get(i);
-			for(int j = 0; j < column.size(); ++j) {
+			for (int j = 0; j < column.size(); ++j) {
 				column.get(j).logic();
 			}
 		}
@@ -461,7 +461,7 @@ public class BinaryAdder extends Entity {
 		switch (state) {
 		case ADD_ELEMENT_BOTTOM:
 			// only allow a single number to be typed.
-			userTypedDS.append("" + number);
+			userTypedDCB.append("" + number);
 			break;
 		default:
 			break;
@@ -509,19 +509,16 @@ public class BinaryAdder extends Entity {
 			// drawCursor = false;
 			// return;
 			// }
-			
-			
+
 			int top = 0;
 			int bottom = 0;
-			if(positionIdx < numberDS.length())
-			{
+			if (positionIdx < numberDS.length()) {
 				top = Integer.parseInt("" + numberDS.getCharAt((numberDS.length() - 1) - positionIdx));
 			}
-			if(positionIdx < additionDS.length())
-			{
+			if (positionIdx < additionDS.length()) {
 				bottom = Integer.parseInt("" + additionDS.getCharAt((additionDS.length() - 1) - positionIdx));
 			}
-			
+
 			int sum = top + bottom;
 			ArrayList<DrawableString> caryColumn = carries.get(positionIdx);
 			for (int i = 0; i < caryColumn.size(); ++i) {
@@ -529,14 +526,14 @@ public class BinaryAdder extends Entity {
 			}
 
 			boolean proceedToNextStep = false;
-			String userTextAnswer = userTypedDS.getText();
+			String userTextAnswer = userTypedDCB.getText();
 			int userAnswer = -1;
 			if (userTextAnswer != "") {
-				userAnswer = Integer.parseInt(userTypedDS.getText(), 2);
+				userAnswer = Integer.parseInt(userTypedDCB.getText(), 2);
 			} else {
 				// user didn't type an answer, they must want to see solution.
-				//proceedToNextStep = true;
-				userTypedDS.setText(Integer.toBinaryString(sum));
+				// proceedToNextStep = true;
+				userTypedDCB.setText(Integer.toBinaryString(sum));
 				return;
 			}
 
@@ -553,8 +550,8 @@ public class BinaryAdder extends Entity {
 				}
 
 				// interpolate to correct positions
-				for (int i = 0; i < userTypedDS.size(); ++i) {
-					DrawableString charObjectAt = userTypedDS.getCharObjectAt((userTypedDS.size() - 1) - i);
+				for (int i = 0; i < userTypedDCB.size(); ++i) {
+					DrawableString charObjectAt = userTypedDCB.getCharObjectAt((userTypedDCB.size() - 1) - i);
 					if (i == 0) {
 						// least order digit goes to answer
 						addAndInterpolateAnswer(charObjectAt);
@@ -566,16 +563,16 @@ public class BinaryAdder extends Entity {
 						}
 					}
 				}
-				userTypedDS.setText("");
+				userTypedDCB.setText("");
 				if (positionIdx < numberDS.length()) {
 					numberDS.setNormalColor(-positionIdx + (numberDS.length() - 1));
 				}
 				if (positionIdx < additionDS.length()) {
 					additionDS.setNormalColor(-positionIdx + (additionDS.length() - 1));
 				}
-				
+
 				positionIdx++;
-				if(colorCode) {
+				if (colorCode) {
 					if (positionIdx < numberDS.length()) {
 						numberDS.setRed(-positionIdx + (numberDS.length() - 1));
 					}
@@ -591,7 +588,7 @@ public class BinaryAdder extends Entity {
 			}
 		} catch (Exception e) {
 			// prevent crashes when user types non-integers.
-			userTypedDS.setText("");
+			userTypedDCB.setText("");
 		}
 	}
 
@@ -602,34 +599,35 @@ public class BinaryAdder extends Entity {
 
 		float interpX = ds.getX();
 		float interpY = ds.getY();
-		
+
 		ds.setXY(oriX, oriY);
 		ds.interpolateTo(interpX, interpY);
 	}
 
 	private void addAndInterpolateCarry(DrawableString ds, int index) {
-		while(index >= carries.size()) {
+		while (index >= carries.size()) {
 			addNewCarryColumn();
 		}
-		while(index >= spacingProvider.length()) {
-			spacingProvider.preappend("0"); //this is a very costly operation.
+		while (index >= spacingProvider.length()) {
+			spacingProvider.preappend("0"); // this is a very costly operation.
 		}
-		DrawableString spacer = spacingProvider.getCharObjectAt((spacingProvider.size() -1) - index);
+		DrawableString spacer = spacingProvider.getCharObjectAt((spacingProvider.size() - 1) - index);
 		float x = spacer.getX();
 		float y = spacer.getY();
-		
+
 		ArrayList<DrawableString> carryColumn = carries.get(index);
 		carryColumn.add(ds);
 		ds.interpolateTo(x, y + carryColumn.size() * (ds.height() + spaceOffset));
 	}
 
-//	private void updatePositionDigit() {
-//		char newDigit = numberStr.charAt(positionIdx);
-//		miniNumerator.append(newDigit);
-//		if (subNumbersExtensions.size() > 0)
-//			appendTextToDS(newDigit + "", subNumbersExtensions.get(subNumbersExtensions.size() - 1));
-//		lastPositionIdx = positionIdx;
-//	}
+	// private void updatePositionDigit() {
+	// char newDigit = numberStr.charAt(positionIdx);
+	// miniNumerator.append(newDigit);
+	// if (subNumbersExtensions.size() > 0)
+	// appendTextToDS(newDigit + "",
+	// subNumbersExtensions.get(subNumbersExtensions.size() - 1));
+	// lastPositionIdx = positionIdx;
+	// }
 
 	private void transitionTo(State newState, int passedValueIfNecessary) {
 		state = newState;
@@ -669,7 +667,7 @@ public class BinaryAdder extends Entity {
 		clearUserTyped();
 		positionCursor();
 		positionUserTyped();
-		//positionNumberExtensions();
+		// positionNumberExtensions();
 	}
 
 	private void positionHorrizontalBars() {
@@ -683,11 +681,11 @@ public class BinaryAdder extends Entity {
 	}
 
 	protected String getUserText() {
-		return userTypedDS.getText();
+		return userTypedDCB.getText();
 	}
 
 	private void clearUserTyped() {
-		userTypedDS.setText("");
+		userTypedDCB.setText("");
 		positionCursor();
 	}
 
@@ -711,26 +709,27 @@ public class BinaryAdder extends Entity {
 		// this.answerDS.setScale(scaleX, scaleY);
 		this.multSymbolDS.setScale(scaleX, scaleY);
 		this.cursorDS.setScale(scaleX, scaleY);
-		this.userTypedDS.setScale(scaleX, scaleY);
-		this.remainderDS.setScale(scaleX * additionalScaleFactor, scaleY * additionalScaleFactor);
+		this.userTypedDCB.setScale(scaleX, scaleY);
+		// this.remainderDS.setScale(scaleX * additionalScaleFactor, scaleY *
+		// additionalScaleFactor);
 		this.sizeSourceDS.setScale(scaleX, scaleY);
 		this.bottomAnswerDS.setScale(scaleX, scaleY);
-		this.userTypedDS.setScale(scaleX, scaleY);
-		for(int i = 0; i < carries.size(); ++i) {
+		this.userTypedDCB.setScale(scaleX, scaleY);
+		for (int i = 0; i < carries.size(); ++i) {
 			ArrayList<DrawableString> column = carries.get(i);
-			for(int j = 0; j < column.size(); ++j) {
+			for (int j = 0; j < column.size(); ++j) {
 				column.get(j).setScale(scaleX, scaleY);
 			}
 		}
-		
+
 		calculateSpaceOffsets();
 		for (int i = 0; i < aboveAdditionNumbers.size(); ++i) {
 			aboveAdditionNumbers.get(i).setScale(scaleX, scaleY);
 			columnResults.get(i).setScale(scaleX, scaleY);
 		}
-		for (int i = 0; i < subNumbersExtensions.size(); ++i) {
-			subNumbersExtensions.get(i).setScale(scaleX, scaleY);
-		}
+		// for (int i = 0; i < subNumbersExtensions.size(); ++i) {
+		// subNumbersExtensions.get(i).setScale(scaleX, scaleY);
+		// }
 		positionElements();
 		positionCursor();
 		positionUserTyped();
@@ -744,5 +743,16 @@ public class BinaryAdder extends Entity {
 
 	public enum State {
 		START, ADD_ELEMENT_BOTTOM, DONE
+	}
+
+	public boolean isDone() {
+		return state == State.DONE;
+	}
+
+	public DrawableCharBuffer getAnswerObject() {
+		return bottomAnswerDS;
+	}
+	public String getAnswerString() {
+		return bottomAnswerDS.getText();
 	}
 }

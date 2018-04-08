@@ -425,4 +425,12 @@ public class BinaryFractMultiply extends Entity {
 	public void colorWholeDigit() {
 		userTypedDS.setBlue(0);
 	}
+
+	public String getResultText() {
+		return userTypedDS.getText();
+	}
+
+	public DrawableString getWholeDS() {
+		return userTypedDS.getCharObjectAt(0);
+	}
 }

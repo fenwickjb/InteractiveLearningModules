@@ -112,4 +112,28 @@ public class WholeNumberBinaryConverter {
 	public boolean isDone() {
 		return complete;
 	}
+
+	public String getReversedRemainderString() {
+		String result = "";
+		for(LongDivisionEntity component : components) {
+			result = component.getRemainder() + result;
+		}
+		return result;
+	}
+
+	public float getRemainderX(int index) {
+		LongDivisionEntity longDivisionEntity = components.get(index);
+		return longDivisionEntity.getRemainderDS().getX();
+	}
+
+	public float getRemainderY(int index) {
+		LongDivisionEntity longDivisionEntity = components.get(index);
+		return longDivisionEntity.getRemainderDS().getY();
+	}
+
+	public void interpolateTranslate(int offsetX, float offsetY) {
+		for(LongDivisionEntity comp : components) {
+			comp.interpolateTo(comp.getX(), comp.getY() + offsetY);
+		}
+	}
 }

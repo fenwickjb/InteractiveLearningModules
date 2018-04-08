@@ -214,4 +214,22 @@ public class DrawableCharBuffer {
 	public DrawableString getCharObjectAt(int i) {
 		return buffer.get(i);
 	}
+
+	public boolean isInterpolating() {
+		for(int i = 0; i < buffer.size(); ++i) {
+			DrawableString ch = buffer.get(i);
+			if(ch.isInterpolating() || ch.isAnimating()) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public void setCharAt(int index, DrawableString value) {
+		buffer.set(index, value);
+	}
+
+	public void setCharAt(int index, char ch) {
+		buffer.get(index).setText("" + ch);
+	}
 }

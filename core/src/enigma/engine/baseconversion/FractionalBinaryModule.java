@@ -10,6 +10,7 @@ import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
 import enigma.engine.CourseModule;
+import enigma.engine.DrawableCharBuffer;
 import enigma.engine.DrawableString;
 import enigma.engine.Game;
 import enigma.engine.TextureLookup;
@@ -30,6 +31,7 @@ public class FractionalBinaryModule extends CourseModule {
 	private Random rng;
 	private WholeNumberBinaryConverter wholeConv;
 	private FractionalNumberBinaryConverter fracConv;
+	private DrawableCharBuffer result;
 	
 	/**
 	 * Constructor
@@ -100,6 +102,7 @@ public class FractionalBinaryModule extends CourseModule {
 		
 		fracConv = new FractionalNumberBinaryConverter(Float.parseFloat(fracNum));
 		fracConv.setPosition(Gdx.graphics.getWidth() * (1f - centerOff), Gdx.graphics.getHeight() * 0.5f);
+		fracConv.setLimitMultiplications(7);
 	}
 
 	@Override
@@ -113,20 +116,74 @@ public class FractionalBinaryModule extends CourseModule {
 				instructions.setScale(0.5f, 0.5f);
 			}
 		}
+		
 		if(Gdx.input.isKeyJustPressed(Input.Keys.N)) {
 			generateNumber();
 			prepareSubComponents();
 		}
 		wholeConv.IO();
 		fracConv.IO();
+		
+		if(wholeConv.isDone() && fracConv.isDone()) {
+			if(result == null) {
+				prepareBinaryResult();
+			}
+		}
+	}
+
+	private void prepareBinaryResult() {
+		String remainders = wholeConv.getReversedRemainderString();
+		String fractionalDigits = fracConv.getDigitsString();
+		
+		String fractionalBinary = remainders + "." + fractionalDigits;
+		
+		result = new DrawableCharBuffer(fractionalBinary);
+		result.setXY(Gdx.graphics.getWidth() * 0.50f, Gdx.graphics.getHeight() * 0.7f);
+		int index = 0;
+		for(int i = 0; i < remainders.length(); ++i) {
+			result.setRed(index);
+			DrawableString number = result.getCharObjectAt(index);
+			float cX = number.getX();
+			float cY = number.getY();
+			
+			int reversedIndex = (remainders.length() - 1) - i;
+			float sX = wholeConv.getRemainderX(reversedIndex);
+			float sY = wholeConv.getRemainderY(reversedIndex);
+			
+			number.setXY(sX, sY);
+			number.interpolateTo(cX, cY);
+			
+			++index;
+		}
+		++index; //should leave period white
+		for(int i = 0; i < fractionalDigits.length(); ++i) {
+			result.setBlue(index);
+			DrawableString fracNum = result.getCharObjectAt(index);
+			float cX = fracNum.getX();
+			float cY = fracNum.getY();
+			float sX = fracConv.getWholeResultLocX(i);
+			float sY = fracConv.getWholeResultLocY(i);
+			
+			fracNum.setXY(sX, sY);
+			fracNum.interpolateTo(cX, cY);
+			++index;
+		}
+		
+		for(int i = 0; i < result.length(); ++i) {
+			result.getCharObjectAt(i).setInterpolateSpeedFactor(4f);
+		}
 	}
 
 	@Override
 	public void logic() {
 		super.logic();
 		instructions.animateLogic();
+		
 		wholeConv.logic();
 		fracConv.logic();
+		if(result != null) {
+			result.logic();
+		}
 		
 		transitionalLogic();
 		
@@ -148,6 +205,9 @@ public class FractionalBinaryModule extends CourseModule {
 		number.draw(batch);
 		wholeConv.draw(batch);
 		fracConv.draw(batch);
+		if(result != null) {
+			result.draw(batch);
+		}
 	}
 	
 }
