@@ -7,7 +7,6 @@ import enigma.engine.baseconversion.FractionalBinaryModule;
 import enigma.engine.baseconversion.IEEEFloat16Converter;
 import enigma.engine.basicmath.LongDivisionModule;
 import enigma.engine.basicmath.MultiplicationModule;
-import enigma.engine.floatingpoint.MasterFloatingPointModule;
 import enigma.engine.fsm.MasterFSMModule;
 import enigma.engine.regex.MasterRegularExpressionModule;
 import enigma.engine.sorting.QSortInstructionModule;

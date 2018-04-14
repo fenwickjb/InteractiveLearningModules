@@ -12,11 +12,11 @@ import com.badlogic.gdx.math.Vector2;
 
 import enigma.engine.DrawableCharBuffer;
 import enigma.engine.DrawableString;
-import enigma.engine.Entity;
+import enigma.engine.LERPEntity;
 import enigma.engine.TextureLookup;
 import enigma.engine.Timer;
 
-public class BinaryFractMultiply extends Entity {
+public class BinaryFractMultiply extends LERPEntity {
 	public enum State {
 		START, MULT_ELEMENT
 	}
@@ -39,8 +39,8 @@ public class BinaryFractMultiply extends Entity {
 
 	private float number;
 	private float multiplicon;
-	private float x;
-	private float y;
+	//private float x;
+	//private float y;
 	private boolean allowIO = true;
 
 	private State state;
@@ -64,10 +64,6 @@ public class BinaryFractMultiply extends Entity {
 	private boolean done = false;
 	private boolean active = true;
 	
-	 
-	
-	
-
 	public BinaryFractMultiply(float number, float x, float y, boolean start) {
 		this.multipliconDS = new DrawableString(filterZeros("" + multiplicon));
 		this.numberDS = new DrawableString("" + number);
@@ -249,9 +245,13 @@ public class BinaryFractMultiply extends Entity {
 	}
 
 	@Override
-	public void logic() {
+	public void logicAfterLERP() {
 
 	}
+//	@Override
+//	public void logic() {
+//
+//	}
 
 	@Override
 	public void dispose() {
@@ -364,7 +364,9 @@ public class BinaryFractMultiply extends Entity {
 		return drawCursor && userInputActive;
 	}
 
-	public void scale(float scaleX, float scaleY) {
+	private void scaleNoPosition(float scaleX, float scaleY) {
+		this.scaleX = scaleX;
+		this.scaleY = scaleY;
 		this.multipliconDS.setScale(scaleX, scaleY);
 		this.numberDS.setScale(scaleX, scaleY);
 		//this.answerDS.setScale(scaleX, scaleY);
@@ -378,9 +380,14 @@ public class BinaryFractMultiply extends Entity {
 			aboveAdditionNumbers.get(i).setScale(scaleX, scaleY);
 			columnResults.get(i).setScale(scaleX, scaleY);
 		}
-//		for (int i = 0; i < subNumbersExtensions.size(); ++i) {
-//			subNumbersExtensions.get(i).setScale(scaleX, scaleY);
-//		}
+		// for (int i = 0; i < subNumbersExtensions.size(); ++i) {
+		// subNumbersExtensions.get(i).setScale(scaleX, scaleY);
+		// }
+	}
+	
+	public void scale(float scaleX, float scaleY) {
+		scaleNoPosition(scaleX, scaleY);
+		
 		positionElements();
 		positionCursor();
 		positionUserTyped();
@@ -399,6 +406,7 @@ public class BinaryFractMultiply extends Entity {
 	public void setPosition(float newX, float newY) {
 		this.x = newX;
 		this.y = newY;
+		scale(this.scaleX, this.scaleY); //there is duplicate positining of elements here.
 		positionElements();
 		//positionSubtractionResults(); //maybe refactor position elements to do all the work. 
 	}
@@ -433,4 +441,5 @@ public class BinaryFractMultiply extends Entity {
 	public DrawableString getWholeDS() {
 		return userTypedDS.getCharObjectAt(0);
 	}
+	
 }

@@ -1,7 +1,5 @@
 package enigma.engine.baseconversion;
 
-import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-
 import enigma.engine.DrawableCharBuffer;
 import enigma.engine.DrawableString;
 

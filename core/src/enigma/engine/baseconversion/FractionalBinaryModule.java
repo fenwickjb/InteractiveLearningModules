@@ -96,8 +96,9 @@ public class FractionalBinaryModule extends CourseModule {
 		String fracNum = "0." + numSplit[1];
 		
 		float centerOff = 0.45f;
-		wholeConv = new WholeNumberBinaryConverter(Integer.parseInt(wholeNum));
-		wholeConv.setPosition(Gdx.graphics.getWidth() * centerOff, Gdx.graphics.getHeight() * 0.5f);
+		wholeConv = new WholeNumberBinaryConverter(Integer.parseInt(wholeNum),
+				Gdx.graphics.getWidth() * centerOff, Gdx.graphics.getHeight() * 0.5f);
+		//wholeConv.setPosition(Gdx.graphics.getWidth() * centerOff, Gdx.graphics.getHeight() * 0.5f);
 		
 		
 		fracConv = new FractionalNumberBinaryConverter(Float.parseFloat(fracNum));

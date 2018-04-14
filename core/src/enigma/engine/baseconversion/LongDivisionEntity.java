@@ -11,11 +11,11 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
 import com.badlogic.gdx.math.Vector2;
 
 import enigma.engine.DrawableString;
-import enigma.engine.Entity;
+import enigma.engine.LERPEntity;
 import enigma.engine.TextureLookup;
 import enigma.engine.Timer;
 
-public class LongDivisionEntity extends Entity {
+public class LongDivisionEntity extends LERPEntity {
 	public enum State {
 		PICK_TOP_NUM, PICK_SUB_NUM, WRITE_SUB_RESULT
 	}
@@ -25,8 +25,8 @@ public class LongDivisionEntity extends Entity {
 	private DrawableString answerDS;
 	private DrawableString remainderDS;
 
-	protected float scaleX;
-	protected float scaleY;
+//	protected float scaleX;
+//	protected float scaleY;
 	private float additionalScaleFactor = 1f;
 
 	private DrawableString cursorDS;
@@ -39,8 +39,8 @@ public class LongDivisionEntity extends Entity {
 	protected int numerator;
 	protected int denominator;
 	private int remainder = 0;
-	private float x;
-	private float y;
+	// private float x;
+	// private float y;
 	private boolean allowIO = true;
 
 	private State state;
@@ -313,14 +313,14 @@ public class LongDivisionEntity extends Entity {
 		}
 	}
 
-	@Override
-	public void logic() {
-		
-		numeratorDS.logic();
-		answerDS.logic();
-		denominatorDS.logic();
-		remainderDS.logic();
-	}
+//	@Override See logicAfterLERP()
+//	public void logic() {
+//		
+//		numeratorDS.logic();
+//		answerDS.logic();
+//		denominatorDS.logic();
+//		remainderDS.logic();
+//	}
 
 	@Override
 	public void dispose() {
@@ -328,7 +328,7 @@ public class LongDivisionEntity extends Entity {
 	}
 
 	public void IO() {
-		if (allowIO && active) {
+		if (allowIO && active && !isInterpolating()) {
 
 			pollTypedNumbers();
 			if (Gdx.input.isKeyJustPressed(Input.Keys.BACKSPACE) || Gdx.input.isKeyJustPressed(Input.Keys.DEL)
@@ -709,6 +709,7 @@ public class LongDivisionEntity extends Entity {
 	public void setPosition(float x, float y) {
 		this.x = x;
 		this.y = y;
+		scale(scaleX, scaleY);
 		positionElements();
 	}
 
@@ -766,5 +767,13 @@ public class LongDivisionEntity extends Entity {
 		denominatorDS.interpolateTo(denoX, denoY);
 		answerDS.interpolateTo(ansX, ansY);
 		remainderDS.interpolateTo(remX, remY);
+	}
+
+	@Override
+	public void logicAfterLERP() {
+		numeratorDS.logic();
+		answerDS.logic();
+		denominatorDS.logic();
+		remainderDS.logic();
 	}
 }

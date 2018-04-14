@@ -73,9 +73,9 @@ public class IEEEFloat16Converter extends CourseModule {
 	}
 
 	private void generateNumber() {
-		// int wholeNumber = rng.nextInt(500) + 1;
+		 int wholeNumber = rng.nextInt(500) + 1;
 		//int wholeNumber = rng.nextInt(10) + 1;
-		int wholeNumber = 0;
+		//int wholeNumber = 0;
 
 		int decimalNumerator = rng.nextInt(500) + 1;
 		if (decimalNumerator % 2 != 00) decimalNumerator++;
@@ -121,8 +121,9 @@ public class IEEEFloat16Converter extends CourseModule {
 		String fracNum = "0." + numSplit[1];
 
 		float centerOff = 0.45f;
-		wholeConv = new WholeNumberBinaryConverter(Integer.parseInt(wholeNum));
-		wholeConv.setPosition(Gdx.graphics.getWidth() * centerOff, Gdx.graphics.getHeight() * 0.5f);
+		wholeConv = new WholeNumberBinaryConverter(Integer.parseInt(wholeNum),
+				Gdx.graphics.getWidth() * centerOff, Gdx.graphics.getHeight() * 0.5f);
+		//wholeConv.setPosition(Gdx.graphics.getWidth() * centerOff, Gdx.graphics.getHeight() * 0.5f);
 
 		fracConv = new FractionalNumberBinaryConverter(Float.parseFloat(fracNum));
 		fracConv.setPosition(Gdx.graphics.getWidth() * (1f - centerOff), Gdx.graphics.getHeight() * 0.5f);
@@ -341,7 +342,7 @@ public class IEEEFloat16Converter extends CourseModule {
 		String fractionalBinary = remainders + "." + fractionalDigits;
 
 		result = new DrawableCharBuffer(fractionalBinary);
-		result.setXY(Gdx.graphics.getWidth() * 0.50f, Gdx.graphics.getHeight() * 0.3f);
+		result.setXY(Gdx.graphics.getWidth() * 0.50f, Gdx.graphics.getHeight() * 0.25f);
 		int index = 0;
 		for (int i = 0; i < remainders.length(); ++i) {
 			result.setRed(index);

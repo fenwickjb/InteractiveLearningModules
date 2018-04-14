@@ -2,6 +2,7 @@ package enigma.engine.baseconversion;
 
 import java.util.ArrayList;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
 import enigma.engine.DrawableString;
@@ -17,12 +18,14 @@ public class WholeNumberBinaryConverter {
 	private boolean complete = false;
 	private float shrinkFactor = 0.45f;
 
-	public WholeNumberBinaryConverter(int number) {
+	public WholeNumberBinaryConverter(int number, float x, float y) {
 		components = new ArrayList<LongDivisionEntity>();
 		//this.number = number;
 		
 		exampleDS = new DrawableString("0");
-		components.add(new LongDivisionEntity(number, 2, x, y));
+		components.add(new LongDivisionEntity(number, 2, - 0.1f * Gdx.graphics.getWidth(), y));
+		this.x = x;
+		this.y = y;
 		
 		positionElements();
 	}
@@ -37,7 +40,8 @@ public class WholeNumberBinaryConverter {
 		for(int i = 0; i < components.size(); ++i) {
 			LongDivisionEntity lde = components.get(i);
 			float newX = lastX - lastWidth - ((i == 0) ? 0 : spacing);
-			lde.setPosition(newX, y);
+			lde.setInterpolateToPoint(newX, y);
+			//lde.setPosition(newX, y);
 			
 			lastX = newX;
 			lastWidth = lde.getWidth();
@@ -48,13 +52,15 @@ public class WholeNumberBinaryConverter {
 		int size = components.size();
 		for(int i = 0; i < size; ++i) {
 			if(size - 1 != i) {
-				components.get(i).scale(shrinkFactor* scaleX, shrinkFactor* scaleY);
+				//components.get(i).scale(shrinkFactor* scaleX, shrinkFactor* scaleY);
+				components.get(i).setInterpolateToScale(shrinkFactor* scaleX, shrinkFactor* scaleY);
 			} else {
 				//go ahead and scale element if they're done.
 				LongDivisionEntity comp = components.get(i);
 				int result = comp.result();
 				if(result == 0 && comp.isDone()) {
-					components.get(i).scale(shrinkFactor* scaleX, shrinkFactor* scaleY);
+					//components.get(i).scale(shrinkFactor* scaleX, shrinkFactor* scaleY);
+					components.get(i).setInterpolateToScale(shrinkFactor* scaleX, shrinkFactor* scaleY);
 				}
 			}
 		}				
@@ -69,6 +75,7 @@ public class WholeNumberBinaryConverter {
 	public void setPosition(float x, float y) {
 		this.x = x;
 		this.y = y;
+		scaleElements();
 		positionElements();
 		
 	}
@@ -83,8 +90,9 @@ public class WholeNumberBinaryConverter {
 			if(result == 0) {
 				//binary conversion is done. 
 			} else {
-				//there are still diits to be processed.
-				LongDivisionEntity newComp = new LongDivisionEntity(result, 2, x, y);
+				//there are still digits to be processed.
+				//LongDivisionEntity newComp = new LongDivisionEntity(result, 2, x, y);
+				LongDivisionEntity newComp = new LongDivisionEntity(result, 2, -Gdx.graphics.getWidth() * 0.1f, y);
 				components.add(newComp);
 				positionElements();
 			}
