@@ -23,7 +23,7 @@ public class BinaryAdder extends Entity {
 	private DrawableCharBuffer bottomAnswerDS;
 	// private DrawableString answerDS;
 	private DrawableString remainderDS;
-	private DrawableString multSymbolDS;
+	private DrawableString addSymbolDS;
 	private DrawableCharBuffer userTypedDCB;
 
 	private String solution = "";
@@ -47,7 +47,7 @@ public class BinaryAdder extends Entity {
 	private long cursorDelay = 400;
 
 	private int number;
-	private int multiplicon;
+	private int additionTerm;
 	private float x;
 	private float y;
 	private boolean allowIO = true;
@@ -76,12 +76,27 @@ public class BinaryAdder extends Entity {
 	private float extraFactor = 1.2f;
 	private DrawableString sizeSourceDS;
 	private float spaceOffset;
+	boolean add = true;
 
 	private float scaleX;
 	private float scaleY;
+	private boolean colorAnswer;
 
 	public BinaryAdder(int number, int addition, float x, float y, boolean start) {
-		this(Integer.toBinaryString(number), Integer.toBinaryString(addition), x, y, start);
+		this(Integer.toBinaryString(number),
+				Integer.toBinaryString(addition >= 0 ? addition : -1 * addition),
+				x, y, start);
+		if(addition >= 0) {
+			addSymbolDS.setText("+");
+			add = true;
+		} else {
+			addSymbolDS.setText("-");
+			add = false;
+			calculateSolution(); //this will need to be recalled.
+			//this is a band-aid and bad software engineering practice,
+			//however, under time constraints, and considering triviality of this issue...
+			//a band-aid is appropriate.
+		}
 	}
 
 	public BinaryAdder(String number, String addition, float x, float y, boolean start) {
@@ -92,10 +107,10 @@ public class BinaryAdder extends Entity {
 		this.bottomAnswerDS = new DrawableCharBuffer("");
 
 		this.number = Integer.parseInt(number, 2);
-		this.multiplicon = Integer.parseInt(addition, 2);
+		this.additionTerm = Integer.parseInt(addition, 2);
 
-		this.multSymbolDS = new DrawableString("" + addSymbol);
-		this.multSymbolDS.setRightAlign();
+		this.addSymbolDS = new DrawableString("" + addSymbol);
+		this.addSymbolDS.setRightAlign();
 
 		this.numberStr = this.numberDS.getText();
 
@@ -149,7 +164,12 @@ public class BinaryAdder extends Entity {
 
 	private void calculateSolution() {
 		try {
-			int result = number + multiplicon;
+			int result;
+			if(add) {
+				result = number + additionTerm;
+			} else {
+				result = number - additionTerm;
+			}
 			solution = Integer.toBinaryString(result);
 		} catch (Exception e) {
 			// Gdx.app.log(tag, message);
@@ -177,7 +197,7 @@ public class BinaryAdder extends Entity {
 		}
 	}
 
-	private void positionElements() {
+	public void positionElements() {
 		reapplyScale();
 		calculateSpaceOffsets();
 		numberDS.setXY(x, y);
@@ -194,12 +214,12 @@ public class BinaryAdder extends Entity {
 		additionDS.setXY(x + halfNumerWidth, y - (numberDS.height() + toleranceHeight));
 
 		float symbolOffset = 4 * spaceOffset;
-		multSymbolDS.setXY(additionDS.getX() - additionDS.width() - symbolOffset, additionDS.getY());
+		addSymbolDS.setXY(additionDS.getX() - additionDS.width() - symbolOffset, additionDS.getY());
 
 		btmPointRight.x = additionDS.getX();
 		btmPointRight.y = additionDS.getY() - 0.5f * additionDS.height() - toleranceHeight;
 
-		float bottomWidth = additionDS.width() + multSymbolDS.width() + symbolOffset;
+		float bottomWidth = additionDS.width() + addSymbolDS.width() + symbolOffset;
 		bottomLeftPoint.x = btmPointRight.x - Math.max(numberDS.width(), bottomWidth);
 		bottomLeftPoint.y = btmPointRight.y;
 
@@ -220,6 +240,7 @@ public class BinaryAdder extends Entity {
 		positionHorrizontalBars();
 		// positionNumberExtensions();
 		positionCarries();
+		positionCursor();
 	}
 
 	private void positionCarries() {
@@ -351,7 +372,7 @@ public class BinaryAdder extends Entity {
 		numberDS.draw(batch);
 		additionDS.draw(batch);
 		// answerDS.draw(batch);
-		multSymbolDS.draw(batch);
+		addSymbolDS.draw(batch);
 		// if (drawRemainder) {
 		// remainderDS.draw(batch);
 		// }
@@ -405,6 +426,7 @@ public class BinaryAdder extends Entity {
 				column.get(j).logic();
 			}
 		}
+		numberDS.logic();
 		bottomAnswerDS.logic();
 	}
 
@@ -423,10 +445,15 @@ public class BinaryAdder extends Entity {
 				positionCursor();
 			}
 
-			if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER)) {
+			if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER) && notInterpolating()) {
 				nextStep();
 			}
 		}
+	}
+
+	private boolean notInterpolating() {
+		boolean debug = !numberDS.isInterpolating();
+		return debug;
 	}
 
 	private void pollTypedNumbers() {
@@ -519,7 +546,13 @@ public class BinaryAdder extends Entity {
 				bottom = Integer.parseInt("" + additionDS.getCharAt((additionDS.length() - 1) - positionIdx));
 			}
 
-			int sum = top + bottom;
+			int sum;
+			
+			if(add) {
+			 sum = top + bottom;
+			} else {
+				sum = top - bottom;
+			}
 			ArrayList<DrawableString> caryColumn = carries.get(positionIdx);
 			for (int i = 0; i < caryColumn.size(); ++i) {
 				sum += Integer.parseInt(caryColumn.get(i).getText());
@@ -541,6 +574,7 @@ public class BinaryAdder extends Entity {
 				proceedToNextStep = true;
 			} else {
 				// user typed wrong answer
+				userTypedDCB.setText("");
 			}
 
 			if (proceedToNextStep) {
@@ -600,6 +634,10 @@ public class BinaryAdder extends Entity {
 		float interpX = ds.getX();
 		float interpY = ds.getY();
 
+		if(colorAnswer) {
+			ds.makeOrange();
+		}
+		
 		ds.setXY(oriX, oriY);
 		ds.interpolateTo(interpX, interpY);
 	}
@@ -707,7 +745,7 @@ public class BinaryAdder extends Entity {
 		this.numberDS.setScale(scaleX, scaleY);
 		this.spacingProvider.setScale(scaleX, scaleY);
 		// this.answerDS.setScale(scaleX, scaleY);
-		this.multSymbolDS.setScale(scaleX, scaleY);
+		this.addSymbolDS.setScale(scaleX, scaleY);
 		this.cursorDS.setScale(scaleX, scaleY);
 		this.userTypedDCB.setScale(scaleX, scaleY);
 		// this.remainderDS.setScale(scaleX * additionalScaleFactor, scaleY *
@@ -754,5 +792,13 @@ public class BinaryAdder extends Entity {
 	}
 	public String getAnswerString() {
 		return bottomAnswerDS.getText();
+	}
+
+	public DrawableCharBuffer getTopNumberObject() {
+		return numberDS;
+	}
+
+	public void colorAnswer(boolean b) {
+		colorAnswer = b;
 	}
 }

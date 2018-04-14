@@ -200,6 +200,25 @@ public class DrawableString {
 		bmFont = TextureLookup.blueBMFont;
 	}
 	
+	public void makeGreen(){
+		bmFont = TextureLookup.greenBMFont;
+	}
+	
+	public void makePink(){
+		bmFont = TextureLookup.pinkBMFont;
+	}
+	
+	public void makeYellow(){
+		bmFont = TextureLookup.yellowBMFont;
+	}
+	public void makeOrange(){
+		bmFont = TextureLookup.orangeBMFont;
+	}
+	
+	public void makePurple(){
+		bmFont = TextureLookup.purpleBMFont;
+	}
+	
 	public void makeNormal(){
 		this.unhighlight();
 	}
@@ -334,6 +353,10 @@ public class DrawableString {
 	
 	public void setInterpolateSpeedFactor(float factor) {
 		interpolateSpeed = Tools.convertSpeedTo60FPSValue(factor);
+	}
+
+	public void matchColor(DrawableString colorSource) {
+		bmFont = colorSource.bmFont;
 	}
 
 }

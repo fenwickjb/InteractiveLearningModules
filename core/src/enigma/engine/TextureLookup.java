@@ -28,8 +28,12 @@ public class TextureLookup {
 
 	public static BitmapFont whiteBMFont;
 	public static BitmapFont yellowBMFont;
+	public static BitmapFont orangeBMFont;
 	public static BitmapFont redBMFont;
 	public static BitmapFont blueBMFont;
+	public static BitmapFont greenBMFont;
+	public static BitmapFont pinkBMFont;
+	public static BitmapFont purpleBMFont;
 	public static BitmapFont ignoreBmInversionWhite;
 	
 	public static ShapeRenderer shapeRenderer;
@@ -95,6 +99,18 @@ public class TextureLookup {
 		
 		blueBMFont = new BitmapFont(Gdx.files.internal(fontName));
 		blueBMFont.setColor(Color.BLUE);
+		
+		greenBMFont = new BitmapFont(Gdx.files.internal(fontName));
+		greenBMFont.setColor(Color.GREEN);
+		
+		pinkBMFont = new BitmapFont(Gdx.files.internal(fontName));
+		pinkBMFont.setColor(Color.PINK);
+		
+		purpleBMFont = new BitmapFont(Gdx.files.internal(fontName));
+		purpleBMFont.setColor(Color.PURPLE);
+		
+		orangeBMFont = new BitmapFont(Gdx.files.internal(fontName));
+		orangeBMFont.setColor(Color.ORANGE);
 		
 		ignoreBmInversionWhite = new BitmapFont(Gdx.files.internal(fontName));
 		ignoreBmInversionWhite.setColor(Color.WHITE);

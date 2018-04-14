@@ -3,10 +3,13 @@ package enigma.engine.baseconversion;
 
 import java.util.ArrayList;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.math.Vector2;
 
 import enigma.engine.DrawableString;
 import enigma.engine.Tools;
+import enigma.engine.utilities.LERPSprite;
 
 @SuppressWarnings("unused")
 public class FractionalNumberBinaryConverter {
@@ -21,6 +24,16 @@ public class FractionalNumberBinaryConverter {
 	private float shrinkFactor = 0.45f;
 	private int multLimit = Integer.MAX_VALUE;
 	private boolean finalScaleResultScaled = false;
+	
+	//interpolationg fields
+	private static Vector2 utilVec = new Vector2();
+	private boolean interpolating = false;
+	protected boolean interpolateToPoint = false;
+	protected boolean interpolateToScale = false;
+	protected Vector2 interpolatePoint = new Vector2();
+	protected float targetScale = 1;
+	protected float interpolateSpeed = Tools.convertSpeedTo60FPSValue(10f);
+	protected float interpolateScaleSpeed = Tools.convertSpeedTo60FPSValue(10f);
 
 	public FractionalNumberBinaryConverter(float number) {
 		components = new ArrayList<BinaryFractMultiply>();
@@ -42,7 +55,7 @@ public class FractionalNumberBinaryConverter {
 		for(int i = 0; i < components.size(); ++i) {
 			BinaryFractMultiply mult = components.get(i);
 			float newX = lastX + lastWidth + ((i == 0) ? 0 : spacing);
-			if(i != components.size() -1 || i == 0 || i == (multLimit - 1)) {
+			if(i != components.size() -1 || i == 0 || (i == (multLimit - 1) && isDone())) {
 				mult.setPosition(newX, y);
 			} else {
 				mult.setPosition(newX + 0.5f * mult.getWidth(), y);
@@ -119,8 +132,70 @@ public class FractionalNumberBinaryConverter {
 //				complete = true;
 //			}
 //		}
+		
+		if(interpolateToScale || interpolateToPoint) {
+			handleInterpolation();
+		}
 	}
 	
+	private void handleInterpolation() {
+		float deltaTime = Gdx.graphics.getDeltaTime();
+		
+		if(interpolateToScale) {
+			//this of this as a 1D vector
+			//assuming a uniform scale
+			float scaleDirection;
+			float scaleDelta;
+			
+			boolean shouldScaleX = Math.abs(targetScale - this.scaleX)< 0.001f;
+			boolean shouldScaleY = Math.abs(targetScale - this.scaleY)< 0.001f;
+			
+			if (shouldScaleX) {
+				scaleDirection = targetScale - this.scaleX;
+				scaleDelta = scaleDirection * interpolateScaleSpeed * deltaTime;
+				this.scaleX += scaleDelta;
+			}
+			if(shouldScaleY) {
+				scaleDirection = targetScale - this.scaleY;
+				scaleDelta = scaleDirection * interpolateScaleSpeed * deltaTime;
+				this.scaleY += scaleDelta;
+			}
+			
+			interpolateToScale = shouldScaleX || shouldScaleY;
+		}
+		
+		float newX = this.x;
+		float newY = this.y;
+		if (interpolateToPoint) {
+			float deltaSpeed = interpolateSpeed * deltaTime;
+
+			float distance = Vector2.dst(interpolatePoint.x, interpolatePoint.y, this.x, this.y);
+			if (distance < 0.001f) {
+				interpolateToPoint = false;
+				return;
+			}
+
+			Vector2 direction = FractionalNumberBinaryConverter.utilVec.set(interpolatePoint.x - this.x, interpolatePoint.y - this.y);
+			direction = direction.nor();
+			direction.scl(deltaSpeed);
+
+			if (direction.len() > distance) {
+				direction.nor();
+				direction.scl(distance);
+			}
+
+			newX = direction.x + this.x;
+			newY = direction.y + this.y;
+		}
+		
+		//this will cause a re-scaling first as a side effect.
+		setPosition(newX, newY);
+	}
+	
+	public void setInterpolateSpeedFactor(float factor) {
+		interpolateSpeed = Tools.convertSpeedTo60FPSValue(factor);
+	}
+
 	private boolean shouldStopCreatingNewMultiplications() {
 		return components.size() >= multLimit;
 	}
