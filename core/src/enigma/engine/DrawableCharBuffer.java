@@ -232,4 +232,30 @@ public class DrawableCharBuffer {
 	public void setCharAt(int index, char ch) {
 		buffer.get(index).setText("" + ch);
 	}
+
+	public boolean writeFromLeft() {
+		return this.alignment == Align.LEFT;
+	}
+	public boolean writeFromRight() {
+		return this.alignment == Align.RIGHT;
+	}
+	public boolean writeFromCenter() {
+		return this.alignment == Align.CENTER;
+	}
+
+	public void interpolateTo(float destX, float destY, float speed) {
+		//this method should be refactored out and change inheritance hiearchy to inherit from LERPEntity
+		float deltaX = destX - this.x;
+		float deltaY = destY - this.y;
+		for(DrawableString ele : buffer) {
+			float sX = ele.getX();
+			float sY = ele.getY();
+			ele.interpolateTo(sX + deltaX, sY + deltaY);
+			ele.setInterpolateSpeedFactor(speed);
+		}
+		
+		//go ahead and update xy position due to lack of callbacks during buffer component interpolations
+		this.x = destX;
+		this.y = destY;
+	}
 }

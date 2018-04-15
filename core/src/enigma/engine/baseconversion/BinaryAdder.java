@@ -81,6 +81,7 @@ public class BinaryAdder extends Entity {
 	private float scaleX;
 	private float scaleY;
 	private boolean colorAnswer;
+	private boolean userCloseUserTypePosition = false;
 
 	public BinaryAdder(int number, int addition, float x, float y, boolean start) {
 		this(Integer.toBinaryString(number),
@@ -286,7 +287,12 @@ public class BinaryAdder extends Entity {
 			// float ansWidth = userTypedDS.width();
 			// float userWidth = userTypedDS.width();
 			// cursorDS.setXY(x + extraFactor * (ansWidth + userWidth), y);
-			cursorDS.setXY(x + spaceOffset, y);
+			if(!userCloseUserTypePosition) {
+				cursorDS.setXY(x + spaceOffset, y);
+			} else {
+				float width = spacingProvider.getCharWidth();
+				cursorDS.setXY(x - width/2, y);
+			}
 			break;
 		}
 		default:
@@ -317,7 +323,11 @@ public class BinaryAdder extends Entity {
 			float width = spotDS.width();
 			userTypedDCB.setRightAlign();
 			// userTypedDS.setXY(x + (extraFactor * width), y);
-			userTypedDCB.setXY(x + width + spaceOffset, y - 4 * (spotDS.height() + 2 * spaceOffset));
+			if(!userCloseUserTypePosition) {
+				userTypedDCB.setXY(x + width + spaceOffset, y - 4 * (spotDS.height() + 2 * spaceOffset));
+			} else {
+				userTypedDCB.setXY(x + width + spaceOffset, y - 2 * (spotDS.height() + 2 * spaceOffset));
+			}
 			break;
 		}
 		default:
@@ -800,5 +810,9 @@ public class BinaryAdder extends Entity {
 
 	public void colorAnswer(boolean b) {
 		colorAnswer = b;
+	}
+
+	public void setUserTypeToClose(boolean b) {
+		userCloseUserTypePosition = b;
 	}
 }
