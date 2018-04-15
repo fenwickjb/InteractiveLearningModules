@@ -22,7 +22,7 @@ public class BinaryAdder extends Entity {
 	private DrawableCharBuffer spacingProvider;
 	private DrawableCharBuffer bottomAnswerDS;
 	// private DrawableString answerDS;
-	private DrawableString remainderDS;
+	//private DrawableString remainderDS;
 	private DrawableString addSymbolDS;
 	private DrawableCharBuffer userTypedDCB;
 
@@ -37,7 +37,7 @@ public class BinaryAdder extends Entity {
 	private int topNumberIdx = 0;
 	private int resultIdx = 0;
 
-	private float additionalScaleFactor = 1f;
+	//private float additionalScaleFactor = 1f;
 
 	private DrawableString cursorDS;
 	private boolean drawCursor = true;
@@ -67,7 +67,7 @@ public class BinaryAdder extends Entity {
 
 	private ArrayList<DrawableString> aboveAdditionNumbers;
 	private ArrayList<DrawableString> columnResults;
-	private ArrayList<DrawableString> subNumbersExtensions;
+	//private ArrayList<DrawableString> subNumbersExtensions;
 	private ArrayList<Float> subOffsets;
 	private ArrayList<Vector2> horrizontal1Points;
 	private ArrayList<Vector2> horrizontal2Points;

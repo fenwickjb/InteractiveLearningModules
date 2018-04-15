@@ -5,6 +5,7 @@ import com.badlogic.gdx.graphics.OrthographicCamera;
 import enigma.engine.baseconversion.BaseConversionModule;
 import enigma.engine.baseconversion.FractionalBinaryModule;
 import enigma.engine.baseconversion.IEEEFloat16Converter;
+import enigma.engine.baseconversion.IEEEFloat16ConverterInstructionModule;
 import enigma.engine.basicmath.LongDivisionModule;
 import enigma.engine.basicmath.MultiplicationModule;
 import enigma.engine.fsm.MasterFSMModule;
@@ -19,6 +20,7 @@ enum module
 	REGEX,
 	FSM,
 	FLOAT_POINT,
+	FLOAT_POINT_INSTRUCTION,
 	QSORT_INSTRUCTION,
 	QSORT_PRACTICE,
 	INSERT_SORT_INSTRUCTION,
@@ -35,7 +37,7 @@ enum module
 
 public class GameMainModule extends CourseModule {
 
-	public static final module compileTimeModuleSetting = module.FLOAT_POINT;
+	public static final module compileTimeModuleSetting = module.FLOAT_POINT_INSTRUCTION;
 	
 	public GameMainModule(OrthographicCamera camera) {
 		super(camera);
@@ -50,6 +52,10 @@ public class GameMainModule extends CourseModule {
 		case FLOAT_POINT:
 			//subModules.add(new MasterFloatingPointModule(camera));
 			subModules.add(new IEEEFloat16Converter(camera));
+			break;
+		case FLOAT_POINT_INSTRUCTION:
+			//subModules.add(new MasterFloatingPointModule(camera));
+			subModules.add(new IEEEFloat16ConverterInstructionModule(camera));
 			break;
 		case QSORT_INSTRUCTION:
 			subModules.add(new QSortInstructionModule(camera));

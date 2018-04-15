@@ -22,7 +22,7 @@ public class IEEEFloat16Converter extends CourseModule {
 	}
 
 	private State state = State.WHOLE_NUM;
-	private DrawableString instructions;
+	private DrawableString instruction;
 	private DrawableString number;
 	// private LongDivisionEntity longDiv;
 	// private BinaryFractMultiply multUnit;
@@ -55,8 +55,8 @@ public class IEEEFloat16Converter extends CourseModule {
 	public IEEEFloat16Converter(OrthographicCamera camera) {
 		super(camera);
 
-		instructions = new DrawableString("IEEE 16bit Conversions");
-		instructions.setXY(Gdx.graphics.getWidth() / 2, Gdx.graphics.getHeight() * 0.90f);
+		instruction = new DrawableString("IEEE 16bit Conversions");
+		instruction.setXY(Gdx.graphics.getWidth() / 2, Gdx.graphics.getHeight() * 0.90f);
 
 		number = new DrawableString("1234");
 		number.setXY(Gdx.graphics.getWidth() * 0.5f, Gdx.graphics.getHeight() * 0.80f);
@@ -140,9 +140,9 @@ public class IEEEFloat16Converter extends CourseModule {
 
 		if (Game.DEBUG) {
 			if (Gdx.input.isKeyJustPressed(Input.Keys.EQUALS)) {
-				instructions.setScale(2, 2);
+				instruction.setScale(2, 2);
 			} else if (Gdx.input.isKeyJustPressed(Input.Keys.MINUS)) {
-				instructions.setScale(0.5f, 0.5f);
+				instruction.setScale(0.5f, 0.5f);
 			}
 		}
 
@@ -469,7 +469,7 @@ public class IEEEFloat16Converter extends CourseModule {
 	@Override
 	public void logic() {
 		super.logic();
-		instructions.animateLogic();
+		instruction.animateLogic();
 
 		wholeConv.logic();
 		if(wholeConv.isDone() || runConvsSimultaneously) {
@@ -522,7 +522,7 @@ public class IEEEFloat16Converter extends CourseModule {
 	@Override
 	public void draw(SpriteBatch batch) {
 		super.draw(batch);
-		instructions.draw(batch);
+		instruction.draw(batch);
 		number.draw(batch);
 		wholeConv.draw(batch);
 		if(wholeConv.isDone() || runConvsSimultaneously) {
@@ -561,6 +561,10 @@ public class IEEEFloat16Converter extends CourseModule {
 		if(resultExponent != null) {
 			resultExponent.draw(batch);
 		}
+	}
+
+	public DrawableString getInstruction() {
+		return instruction;
 	}
 
 }

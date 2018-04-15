@@ -6,14 +6,14 @@ import enigma.engine.DrawableString;
 public class ScientificExponentFinder {
 
 	private DrawableCharBuffer buffer;
-	private float value;
+	//private float value;
 	private int radexPosition = -1;
 	private boolean done = false;
 	private int exponents = 0;
 	private boolean exponentIsPositive = true;
 
 	public ScientificExponentFinder(float value, DrawableCharBuffer resultBuffer) {
-		this.value = value;
+		//this.value = value;
 		this.buffer = resultBuffer;
 		for(int i = 0; i < buffer.size(); ++i) {
 			if(buffer.getCharAt(i) == '.') {
