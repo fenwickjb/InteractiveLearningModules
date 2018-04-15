@@ -438,6 +438,7 @@ public class BinaryAdder extends Entity {
 		}
 		numberDS.logic();
 		bottomAnswerDS.logic();
+		additionDS.logic();
 	}
 
 	@Override
@@ -446,8 +447,7 @@ public class BinaryAdder extends Entity {
 	}
 
 	public void IO() {
-		if (allowIO) {
-
+		if (allowIO && !busy()) {
 			pollTypedNumbers();
 			if (Gdx.input.isKeyJustPressed(Input.Keys.BACKSPACE) || Gdx.input.isKeyJustPressed(Input.Keys.DEL)
 					|| Gdx.input.isKeyJustPressed(Input.Keys.D)) {
@@ -459,6 +459,10 @@ public class BinaryAdder extends Entity {
 				nextStep();
 			}
 		}
+	}
+
+	private boolean busy() {
+		return additionDS.isInterpolating() || numberDS.isInterpolating();
 	}
 
 	private boolean notInterpolating() {
@@ -814,5 +818,9 @@ public class BinaryAdder extends Entity {
 
 	public void setUserTypeToClose(boolean b) {
 		userCloseUserTypePosition = b;
+	}
+
+	public DrawableCharBuffer getAdditionObject() {
+		return additionDS;
 	}
 }

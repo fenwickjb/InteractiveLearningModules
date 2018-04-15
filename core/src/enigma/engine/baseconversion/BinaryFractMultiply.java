@@ -38,7 +38,7 @@ public class BinaryFractMultiply extends LERPEntity {
 	private long cursorDelay = 400;
 
 	private float number;
-	private float multiplicon;
+	private float multiplicon = 2;
 	//private float x;
 	//private float y;
 	private boolean allowIO = true;

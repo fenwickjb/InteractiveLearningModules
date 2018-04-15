@@ -44,6 +44,7 @@ public class IEEEFloat16Converter extends CourseModule {
 	private DrawableCharBuffer mantissaPadding;
 	private DrawableCharBuffer placeHolderExp;
 	private DrawableExponent resultExponent;
+	private boolean runConvsSimultaneously = false;
 
 	/**
 	 * Constructor
@@ -76,8 +77,8 @@ public class IEEEFloat16Converter extends CourseModule {
 
 	private void generateNumber() {
 //		 int wholeNumber = rng.nextInt(500) + 1;
-		//int wholeNumber = rng.nextInt(10) + 1;
-		int wholeNumber = 0;
+		int wholeNumber = rng.nextInt(10) + 1;
+//		int wholeNumber = 0;
 
 		int decimalNumerator = rng.nextInt(500) + 1;
 		if (decimalNumerator % 2 != 00) decimalNumerator++;
@@ -151,7 +152,9 @@ public class IEEEFloat16Converter extends CourseModule {
 		}
 
 		wholeConv.IO();
-		fracConv.IO();
+		if(wholeConv.isDone() || runConvsSimultaneously) {
+			fracConv.IO();
+		}
 		if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER)) {
 			nextStatePressedEnter();
 		}
@@ -277,6 +280,27 @@ public class IEEEFloat16Converter extends CourseModule {
 				}
 				spot.setVisible(false);
 			}
+			
+			//show where adding exponent comes from
+			DrawableCharBuffer exp = exponentAddr.getAdditionObject();
+			rawText = exponentCounter.getText();
+			int startExp = rawText.lastIndexOf("=") + 1;
+			startExp = rawText.charAt(startExp) == '-' ? startExp + 1 : startExp;
+			
+			for(int i = startExp, idx = 0; i < exponentCounter.size();++i, ++idx) {
+				DrawableString expCh = exp.getCharObjectAt(idx);
+				float dx = expCh.getX();
+				float dy = expCh.getY();
+				
+				DrawableString spot = exponentCounter.getCharObjectAt(i);
+				float sx = spot.getX();
+				float sy = spot.getY();
+				
+				expCh.setXY(sx, sy);
+				expCh.interpolateTo(dx, dy);
+				expCh.matchColor(spot);
+				expCh.setInterpolateSpeedFactor(2.5f);
+			}
 		}
 		else if (!exponentAddr.isDone()) {
 			//do nothing until exponeAddr is done.
@@ -351,6 +375,19 @@ public class IEEEFloat16Converter extends CourseModule {
 							+ (sign) + expon  + "="
 							+ (sign) +Integer.toBinaryString(expon);
 					exponentCounter.setText(newString);
+					
+					//reset colors and highlight exponent with separate color
+					int equalsSignEncountered = 0;
+					for(int i = 0; i < exponentCounter.size();++i) {
+						char ch = exponentCounter.getCharAt(i);
+						if(equalsSignEncountered >= 2) {
+							exponentCounter.getCharObjectAt(i).makePink();
+						} else {
+							exponentCounter.getCharObjectAt(i).makeNormal();
+						}
+						
+						if(ch == '=') equalsSignEncountered++;
+					}
 				} else {
 					//state = State.SIGN_BIT;
 					state = State.MANTISSA;
@@ -435,7 +472,9 @@ public class IEEEFloat16Converter extends CourseModule {
 		instructions.animateLogic();
 
 		wholeConv.logic();
-		fracConv.logic();
+		if(wholeConv.isDone() || runConvsSimultaneously) {
+			fracConv.logic();
+		}
 		if (result != null) {
 			result.logic();
 		}
@@ -486,7 +525,9 @@ public class IEEEFloat16Converter extends CourseModule {
 		instructions.draw(batch);
 		number.draw(batch);
 		wholeConv.draw(batch);
-		fracConv.draw(batch);
+		if(wholeConv.isDone() || runConvsSimultaneously) {
+			fracConv.draw(batch);
+		}
 		if (result != null) {
 			result.draw(batch);
 		}
