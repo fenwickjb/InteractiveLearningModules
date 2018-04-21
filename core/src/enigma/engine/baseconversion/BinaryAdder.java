@@ -737,7 +737,7 @@ public class BinaryAdder extends Entity {
 		return userTypedDCB.getText();
 	}
 
-	private void clearUserTyped() {
+	public void clearUserTyped() {
 		userTypedDCB.setText("");
 		positionCursor();
 	}

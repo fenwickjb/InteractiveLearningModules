@@ -59,6 +59,7 @@ public class IEEEFloat16Converter extends CourseModule {
 	public boolean allowNegativeNumbers = false;
 	private boolean numberIsNegative = false;
 	private DrawableString negativeSign;
+	private boolean updateInstructions = true;
 
 	/**
 	 * Constructor
@@ -86,7 +87,7 @@ public class IEEEFloat16Converter extends CourseModule {
 			rng = new Random();
 		}
 
-		generateNumber();
+		generateNumber(-1);
 		prepareSubComponents();
 		
 		//prepare keybinds menu.
@@ -103,9 +104,12 @@ public class IEEEFloat16Converter extends CourseModule {
 		kbDisplay = new KeybindDisplay(keyActionPairs, width, height, centerX, centerY + Gdx.graphics.getHeight(), true);
 	}
 
-	private void generateNumber() {
-//		 int wholeNumber = rng.nextInt(500) + 1;
+	private void generateNumber(double overrideValue) {
 		int wholeNumber = rng.nextInt(10) + 1;
+		if(overrideValue >= 0) {
+			//trim off fractional portion.
+			wholeNumber = (int)overrideValue;
+		}
 		
 		if(allowNegativeNumbers) {
 			if(rng.nextBoolean()) {
@@ -124,6 +128,11 @@ public class IEEEFloat16Converter extends CourseModule {
 		if (decimalDenominator % 2 != 0) decimalDenominator++;
 
 		double fractional = decimalNumerator / (double) decimalDenominator;
+		
+		if(overrideValue >= 0) {
+			//trim off whole number portion.
+			fractional = (float)(overrideValue - (int) overrideValue);
+		}
 
 		String fractionalStr = "" + fractional;
 		int trimLength = 4 + rng.nextInt(2);
@@ -173,7 +182,7 @@ public class IEEEFloat16Converter extends CourseModule {
 
 		fracConv = new FractionalNumberBinaryConverter(Float.parseFloat(fracNum));
 		fracConv.setPosition(Gdx.graphics.getWidth() * (1f - centerOff), Gdx.graphics.getHeight() * 0.5f);
-		fracConv.setLimitMultiplications(7);
+		fracConv.setLimitMultiplications(11);
 	}
 
 	@Override
@@ -189,7 +198,7 @@ public class IEEEFloat16Converter extends CourseModule {
 		}
 
 		if (Gdx.input.isKeyJustPressed(Input.Keys.N)) {
-			generateNumber();
+			generateNumber(-1);
 			prepareSubComponents();
 			state = State.WHOLE_NUM;
 			prepareInstructions(WHOLE_INSTRUCTION);
@@ -208,8 +217,10 @@ public class IEEEFloat16Converter extends CourseModule {
 	}
 
 	private void prepareInstructions(String instructionText) {
-		instruction.setText(instructionText);
-		instruction.scaleToScreen(true);
+		if(updateInstructions) {
+			instruction.setText(instructionText);
+			instruction.scaleToScreen(true);
+		}
 		
 	}
 
@@ -294,7 +305,7 @@ public class IEEEFloat16Converter extends CourseModule {
 
 	private void handleStateExponentAdd() {
 		if(exponentAddr == null) {
-			float x = Gdx.graphics.getWidth() * 0.8f;
+			float x = Gdx.graphics.getWidth() * (1-0.8f);
 			float y = Gdx.graphics.getHeight() * 0.3f;
 			
 			String rawText = exponentCounter.getText();
@@ -525,7 +536,11 @@ public class IEEEFloat16Converter extends CourseModule {
 		instruction.animateLogic();
 
 		wholeConv.logic();
+		
 		if(wholeConv.isDone() || runConvsSimultaneously) {
+			//this will be executed multiple times, should be refactored to a non-polling solution
+			//but in the interest of time, this one is let slide.
+			fracConv.setLimitMultiplications(11 - wholeConv.size());
 			fracConv.logic();
 		}
 		if (result != null) {
@@ -670,7 +685,10 @@ public class IEEEFloat16Converter extends CourseModule {
 	}
 
 	public boolean mantisaaDisplaying() {
-		return mantissa != null && mantissaPadding != null;	
+		
+		
+		return (mantissa != null && mantissa.size() >= 10) 
+				|| (mantissa != null && mantissaPadding != null);	
 	}
 
 	public boolean exponentHasMoved() {
@@ -710,9 +728,16 @@ public class IEEEFloat16Converter extends CourseModule {
 		rng = new Random();
 	}
 	
-	
-	
-	
-	
+	public void allowUpdatingInstructions(boolean b) {
+		updateInstructions = b;
+	}
 
+	public BinaryAdder getExponentAdder() {
+		return exponentAddr;
+	}
+
+	public void setNumber(double value) {
+		//bug with setting value
+		//generateNumber(value);
+	}
 }

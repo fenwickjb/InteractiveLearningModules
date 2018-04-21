@@ -42,6 +42,7 @@ public class IEEEFloat16ConverterInstructionModule extends CourseModule {
 	private WholeNumberBinaryConverter wholeConv;
 	private FractionalNumberBinaryConverter fracConv;
 	private DrawableCharBuffer result;
+	private boolean delayOneEnter;
 
 	/**
 	 * Constructor
@@ -52,6 +53,8 @@ public class IEEEFloat16ConverterInstructionModule extends CourseModule {
 	public IEEEFloat16ConverterInstructionModule(OrthographicCamera camera) {
 		super(camera);
 		ieee = new IEEEFloat16Converter(camera);
+		ieee.allowUpdatingInstructions(false);
+		//ieee.setNumber(12.375);
 		generateInstructions();
 		generateCommands();
 		allowLogic = false;
@@ -90,16 +93,16 @@ public class IEEEFloat16ConverterInstructionModule extends CourseModule {
 
 		instructions.add("We can convert the whole number part by repeatedly dividing by 2!");
 		instructions.add("Everytime we get a remainder, the remainder becomes a digit!");
-		instructions.add("We repeatedly divide our result by two and look at the remainders.");
-		instructions.add("Eventually, we get zero as a result (and this stops our divisions)");
-		instructions.add("An example will make this clearer, lets work it out.");
+		instructions.add("So, we just repeatedly divide our result by 2, and record the remainders.");
+		instructions.add("Eventually, we get zero as a result (and we stop our divisions)");
+		instructions.add("An example will make this clearer, let's work it out.");
 		instructions.add("When you see a flashing '|' cursor, type the answer.");
 		instructions.add(COMPLETE_DIVISION);
 		instructions.add("Fill in the answers, or press enter to see the correct value.");
 
 		instructions.add("Note: each division builds the binary number in reverse...");
-		instructions.add("...so, let's write our divisions backards (right to left)...");
-		instructions.add("... this will make it easier to read once we're done.");
+		instructions.add("...that's why we wrote our divisions backwards (right to left)...");
+		instructions.add("... doing the divisions right to left makes it easier to read.");
 		instructions.add("Now, the red remainders represent the whole number portion in binary.");
 
 		instructions.add("Next, we need to convert the numbers to the right of the decimal point");
@@ -113,18 +116,20 @@ public class IEEEFloat16ConverterInstructionModule extends CourseModule {
 		instructions.add("if we get a 1, then we must subtact 1 before the next multiplication...");
 		instructions.add("...don't worry, that will become clear with the example.");
 		instructions.add("Now let's get started with the fractional part...");
-		instructions.add("Keep multiplying the numbers until we get zero, or run out of space.");
 		instructions.add(COMPLETE_FRACTION);
+		instructions.add("Keep multiplying the numbers until we get zero, or run out of space.");
 
-		instructions.add("We have successfully converted the number to binary! But...");
-		instructions.add("...the IEEE float specification doesn't store this number directly...");
+		instructions.add("We ran out of space... this may be a repeating number in binary!");
+		instructions.add("Some numbers repeat in binary, like 1/3 (0.333) does in decimal.");
+		instructions.add("If a number is repeating, we store as many digits as we can.");
+		instructions.add("Back to the task, IEEE floats don't store converted number directly...");
 		instructions.add("... to store the number we need to first convert it to scientific notation.");
 
 		instructions.add("Before I explain this, there is a slight change in language I need to explain.");
-		instructions.add("When we're dealing with decimal numbers, we call the '.' a 'decimal point'.");
-		instructions.add("When we're dealing with binary numbers, we could the '.' a 'binary point'.");
-		instructions.add("In a more general sense, we could just call the '.' a 'radex point'");
-		instructions.add("However, I'm going to keep refering to the '.' as a decimal point, regardless of our base.");
+		instructions.add("When we're dealing with decimal numbers, we call the ' . ' a 'decimal point'.");
+		instructions.add("When we're dealing with binary numbers, we could the ' . ' a 'binary point'.");
+		instructions.add("In a more general sense, we could just call the ' . ' a 'radex point'");
+		instructions.add("However, I'm going to keep refering to the ' . ' as a decimal point, regardless of our base.");
 
 		instructions.add("Now then, to convert our number to scientific notation!");
 		instructions.add("Just like in decimal scientific notation, we move the decimal point.");
@@ -138,8 +143,9 @@ public class IEEEFloat16ConverterInstructionModule extends CourseModule {
 		instructions.add("...it stores other data too, such as positive/negative bit and the exponent of 2.");
 
 		instructions.add(SHOW_BITS);
-		instructions.add("Now, the IEEE floating point is broken up into 3 pieces.");
-		instructions.add("it consists of,  1 sign bit, 5 exponent bits, and 10 Mantissa bits");
+		instructions.add("The IEEE floating point is broken up into 3 pieces.");
+		instructions.add("it consists of,  1 sign bit, 5 exponent bits, and 10 Mantissa bits.");
+		instructions.add("The 01111 is related to the exponent, but we will get to that in a moment.");
 		instructions.add("The mantissa is where we store the scientific notation number.");
 		instructions.add("The mantissa is the right hand 10 bits, colored purple.");
 		instructions.add("Press enter to move our binary number to the final conversion.");
@@ -151,7 +157,7 @@ public class IEEEFloat16ConverterInstructionModule extends CourseModule {
 		instructions.add("Remember, in binary digits are either 0 and 1...");
 		instructions.add("...if digit left of the decimal place were 0, it would be invalid scientific notation...");
 		instructions.add("That is, we don't write '0.11 x 2^2', instead we write '1.1 x 2^1'");
-		instructions.add("This is because in scientific notation we only have a single digit whole number portion.'");
+		instructions.add("This is because in scientific notation we only have a single digit whole number portion.");
 		instructions.add("So, the leftmost digit must be 1, since there are no other characters in binary.");
 		instructions.add("Thus, we can save one bit by not including the first 1 in our conversion!");
 
@@ -196,10 +202,12 @@ public class IEEEFloat16ConverterInstructionModule extends CourseModule {
 			allowIO = true;
 			allowLogic = true;
 			ieee.allowNegativeNumbers = true;
+			ieee.allowNextStepEnter(true);
+			ieee.allowUpdatingInstructions(true);
 			ieee.makeSeedRandom();
 		}
 
-		if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER)) {
+		if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER) && !delayOneEnter) {
 			switch (state) {
 			case READ_INSTS: {
 				processNextInstruction();
@@ -211,6 +219,14 @@ public class IEEEFloat16ConverterInstructionModule extends CourseModule {
 		}
 		if (allowIO) {
 			ieee.IO();
+		}
+		if(delayOneEnter) {
+			//bandaids to prevent from showing solution on state transition
+			delayOneEnter = false;
+			BinaryAdder exponentAdder = ieee.getExponentAdder();
+			if(exponentAdder != null) {
+				exponentAdder.clearUserTyped();
+			}
 		}
 	}
 
@@ -277,9 +293,12 @@ public class IEEEFloat16ConverterInstructionModule extends CourseModule {
 			processNextInstruction();
 		} else if (ADD_EXPONENT.equals(command)) {
 			ieee.allowExponentCursor();
+			BinaryAdder exponentAdder = ieee.getExponentAdder();
+			exponentAdder.clearUserTyped();
 			allowIO = true;
 			state = State.EXPONENT;
 			ieee.allowNextStepEnter(true);
+			delayOneEnter = true;
 			processNextInstruction();
 		} else if (RESTORE_EXPONENT.equals(command)) {
 			state = State.RESTORE_EXPONENT;

@@ -44,15 +44,26 @@ public class FractionalNumberBinaryConverter {
 		float lastWidth = 0;
 		float spacing = calculateSpacing();
 		
+		float yCorrection = 0;
+		float xCorrection = 0;
+		
 		for(int i = 0; i < components.size(); ++i) {
 			BinaryFractMultiply mult = components.get(i);
 			float newX = lastX + lastWidth + ((i == 0) ? 0 : spacing);
+			
+			//check that x isn't going off screen.
+			if(newX + mult.getWidth() > Gdx.graphics.getWidth()) {
+				xCorrection = -Gdx.graphics.getWidth() * 0.15f;
+				yCorrection = 4 * exampleDS.height();
+			}
+			
+			
 			if(i != components.size() -1 || i == 0 || (i == (multLimit - 1) && isDone())) {
 				//mult.setPosition(newX, y);
-				mult.setInterpolateToPoint(newX, y);
+				mult.setInterpolateToPoint(newX + xCorrection, y + yCorrection);
 			} else {
 				//mult.setPosition(newX + 0.5f * mult.getWidth(), y);
-				mult.setInterpolateToPoint(newX + 0.5f * mult.getWidth(), y);
+				mult.setInterpolateToPoint(newX + 0.5f * mult.getWidth() + xCorrection, y + yCorrection);
 			}
 			
 			lastX = newX;

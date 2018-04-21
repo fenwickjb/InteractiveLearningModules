@@ -144,4 +144,8 @@ public class WholeNumberBinaryConverter {
 			comp.interpolateTo(comp.getX(), comp.getY() + offsetY);
 		}
 	}
+
+	public int size() {
+		return components.size();
+	}
 }

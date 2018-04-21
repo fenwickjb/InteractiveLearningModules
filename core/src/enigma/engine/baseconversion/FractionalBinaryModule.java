@@ -103,7 +103,7 @@ public class FractionalBinaryModule extends CourseModule {
 		
 		fracConv = new FractionalNumberBinaryConverter(Float.parseFloat(fracNum));
 		fracConv.setPosition(Gdx.graphics.getWidth() * (1f - centerOff), Gdx.graphics.getHeight() * 0.5f);
-		fracConv.setLimitMultiplications(7);
+		fracConv.setLimitMultiplications(11);
 	}
 
 	@Override

@@ -45,6 +45,14 @@ public class ScientificExponentFinder {
 				
 				if(radexPosition == 1)
 					done = true;
+			}else {
+				//check that number isn't completely fractional, if it is not, then the 
+				//scientific notation is correct.
+				String text = buffer.getText();
+				if(text.charAt(0) != '0') {
+					//this means that that value is not purely fractional, and no movement is needed in the scientific notation
+					done = true;
+				}
 			}
 		} else {
 			//value is purely fractional, move to the right, and have negative exponent
