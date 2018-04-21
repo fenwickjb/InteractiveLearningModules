@@ -146,7 +146,9 @@ public class FractionalNumberBinaryConverter {
 
 	public void IO() {
 		for(BinaryFractMultiply entity : components) {
-			entity.IO();
+			if(!entity.isInterpolating()) {
+				entity.IO();
+			}
 		}
 	}
 	

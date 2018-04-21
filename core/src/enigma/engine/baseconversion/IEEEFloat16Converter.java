@@ -15,11 +15,20 @@ import enigma.engine.DrawableString;
 import enigma.engine.Game;
 import enigma.engine.TextureLookup;
 import enigma.engine.basicmath.DrawableExponent;
+import enigma.engine.utilities.KeybindDisplay;
+import enigma.engine.utilities.Tuple2;
 
 public class IEEEFloat16Converter extends CourseModule {
 	private enum State {
 		WHOLE_NUM, FRACT_NUM, INTERPOLATE_NUM, SCIENTIFIC, SIGN_BIT, EXPONENT_ADD, MANTISSA, DONE 
 	}
+
+	private static final String WHOLE_INSTRUCTION = "Convert the whole number portion to binary.";
+	private static final String FRACT_INSTRUCTION = "Convert the fractional portion to binary.";
+	private static final String SCI_INSTRUCTION = "Move the radex point to change the number to scientific notation.";
+	private static final String EXPONENT_INSTRUCTION = "Add the exponent to the bias to fill in the exponent bits.";
+	private static final String SIGN_INSTRUCTION = "Complete the sign bit based on the number's sign.";
+	private static final String DONE_INSTRUCTION = "The number has been converted, press N for a new number.";
 
 	private State state = State.WHOLE_NUM;
 	private DrawableString instruction;
@@ -45,6 +54,11 @@ public class IEEEFloat16Converter extends CourseModule {
 	private DrawableCharBuffer placeHolderExp;
 	private DrawableExponent resultExponent;
 	private boolean runConvsSimultaneously = false;
+	private boolean allowNextStep = true;
+	private KeybindDisplay kbDisplay;
+	public boolean allowNegativeNumbers = false;
+	private boolean numberIsNegative = false;
+	private DrawableString negativeSign;
 
 	/**
 	 * Constructor
@@ -60,6 +74,7 @@ public class IEEEFloat16Converter extends CourseModule {
 
 		number = new DrawableString("1234");
 		number.setXY(Gdx.graphics.getWidth() * 0.5f, Gdx.graphics.getHeight() * 0.80f);
+		negativeSign = new DrawableString("+");
 
 		sNotationLoops = new ArrayList<Sprite>();
 		sNotationLoops.add(new Sprite(TextureLookup.sNotationLoop));
@@ -73,12 +88,34 @@ public class IEEEFloat16Converter extends CourseModule {
 
 		generateNumber();
 		prepareSubComponents();
+		
+		//prepare keybinds menu.
+		ArrayList<Tuple2<String, String>> keyActionPairs = new ArrayList<Tuple2<String,String>>();
+		keyActionPairs.add(new Tuple2<String, String>("N", "Random New Problem."));
+		keyActionPairs.add(new Tuple2<String, String>("C", "Change Color Scheme."));
+		keyActionPairs.add(new Tuple2<String, String>("ENTER", "Next Step / Check Move."));
+		keyActionPairs.add(new Tuple2<String, String>("Space", "Show/Hide keybinds menu."));
+		
+		float centerX = Gdx.graphics.getWidth()/2;
+		float centerY = Gdx.graphics.getHeight() /2;
+		float width = Gdx.graphics.getWidth() * 0.95f;
+		float height = Gdx.graphics.getHeight() * 0.95f;
+		kbDisplay = new KeybindDisplay(keyActionPairs, width, height, centerX, centerY + Gdx.graphics.getHeight(), true);
 	}
 
 	private void generateNumber() {
 //		 int wholeNumber = rng.nextInt(500) + 1;
 		int wholeNumber = rng.nextInt(10) + 1;
-//		int wholeNumber = 0;
+		
+		if(allowNegativeNumbers) {
+			if(rng.nextBoolean()) {
+				numberIsNegative  = true;
+				negativeSign.setText("-");
+			} else {
+				numberIsNegative = false;
+				negativeSign.setText("+");
+			}
+		}
 
 		int decimalNumerator = rng.nextInt(500) + 1;
 		if (decimalNumerator % 2 != 00) decimalNumerator++;
@@ -101,7 +138,12 @@ public class IEEEFloat16Converter extends CourseModule {
 		numberStr += fractionalStr;
 
 		number.setText(numberStr);
-
+		
+		//position negativeSign after number as been updated.
+		negativeSign.setRightAlign();
+		negativeSign.setXY(number.getX() - number.width()/2, number.getY());
+		
+		
 		state = State.WHOLE_NUM;
 		sciFinder = null;
 		exponentAddr = null;
@@ -149,19 +191,26 @@ public class IEEEFloat16Converter extends CourseModule {
 		if (Gdx.input.isKeyJustPressed(Input.Keys.N)) {
 			generateNumber();
 			prepareSubComponents();
+			state = State.WHOLE_NUM;
+			prepareInstructions(WHOLE_INSTRUCTION);
 		}
 
 		wholeConv.IO();
 		if(wholeConv.isDone() || runConvsSimultaneously) {
 			fracConv.IO();
 		}
-		if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER)) {
+		if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER) && allowNextStep) {
 			nextStatePressedEnter();
 		}
 		if(exponentAddr != null) {
 			exponentAddr.IO();
 		}
+	}
 
+	private void prepareInstructions(String instructionText) {
+		instruction.setText(instructionText);
+		instruction.scaleToScreen(true);
+		
 	}
 
 	private void nextStatePressedEnter() {
@@ -239,6 +288,7 @@ public class IEEEFloat16Converter extends CourseModule {
 			}
 			//state = State.DONE;
 			state = State.EXPONENT_ADD;
+			prepareInstructions(EXPONENT_INSTRUCTION);
 		}
 	}
 
@@ -324,11 +374,12 @@ public class IEEEFloat16Converter extends CourseModule {
 				bitIndex++;
 			}
 			state = State.SIGN_BIT;
+			prepareInstructions(SIGN_INSTRUCTION);
 		}
 	}
 
 	private void handleNextStateSignBit() {
-		if (number.getText().charAt(0) == '-') {
+		if (negativeSign.getText().charAt(0) == '-') {
 			signBit = new DrawableString("1");
 		} else {
 			signBit = new DrawableString("0");
@@ -336,6 +387,7 @@ public class IEEEFloat16Converter extends CourseModule {
 		DrawableString signSpot = bitsIEEE.getCharObjectAt(0);
 		signBit.setXY(signSpot.getX(), signSpot.getY());
 		state = State.DONE;
+		prepareInstructions(DONE_INSTRUCTION);
 	}
 
 	private void handleNextStateScientific() {
@@ -391,6 +443,7 @@ public class IEEEFloat16Converter extends CourseModule {
 				} else {
 					//state = State.SIGN_BIT;
 					state = State.MANTISSA;
+					
 				}
 			}
 		}
@@ -497,6 +550,8 @@ public class IEEEFloat16Converter extends CourseModule {
 		if(resultExponent != null) {
 			resultExponent.logic();
 		}
+		negativeSign.logic();
+		kbDisplay.logic();
 	}
 
 	private void transitionalLogic() {
@@ -504,6 +559,7 @@ public class IEEEFloat16Converter extends CourseModule {
 			if (wholeConv.isDone()) {
 				state = State.FRACT_NUM;
 				// createFractional();
+				prepareInstructions(FRACT_INSTRUCTION);
 			}
 		} else if (state == State.FRACT_NUM) {
 			if (fracConv.isDone()) {
@@ -511,6 +567,7 @@ public class IEEEFloat16Converter extends CourseModule {
 					prepareBinaryResult();
 				}
 				state = State.SCIENTIFIC;
+				prepareInstructions(SCI_INSTRUCTION);
 			}
 		} else if (state == State.SCIENTIFIC) {
 			if(sciFinder != null && sciFinder.isDone()) {
@@ -561,10 +618,101 @@ public class IEEEFloat16Converter extends CourseModule {
 		if(resultExponent != null) {
 			resultExponent.draw(batch);
 		}
+		negativeSign.draw(batch);
+		kbDisplay.draw(batch);
 	}
 
+	//public api for instruction modules
+	
 	public DrawableString getInstruction() {
 		return instruction;
 	}
+
+	public boolean isDoneWithDivision() {
+		return state != State.WHOLE_NUM;
+	}
+
+	public WholeNumberBinaryConverter getWholeConv() {
+		return wholeConv;
+	}
+
+	public boolean isDoneWithMultiplications() {
+		return state != State.WHOLE_NUM &&  state !=State.FRACT_NUM; 
+	}
+
+	public FractionalNumberBinaryConverter getFracConv() {
+		return fracConv;
+	}
+
+	public DrawableCharBuffer getResult() {
+		return result;
+	}
+
+	public boolean isDoneWithScientificNotation() {
+		if(sciFinder == null) return false;
+		return sciFinder.isDone();
+	}
+
+	public void forceNextStep() {
+		nextStatePressedEnter();
+	}
+
+	public ScientificExponentFinder getSciFinder() {
+		return sciFinder;
+	}
+
+	public void allowNextStepEnter(boolean b) {
+		allowNextStep = b;
+	}
+
+	public boolean displayingBits() {
+		return bitsIEEE != null;
+	}
+
+	public boolean mantisaaDisplaying() {
+		return mantissa != null && mantissaPadding != null;	
+	}
+
+	public boolean exponentHasMoved() {
+		return exponentAddr != null;
+	}
+
+	public boolean exponentAddingDone() {
+		if (exponentAddr == null) return false;
+		return exponentAddr.isDone();
+	}
+
+	public boolean exponentMovedToBitsAndComplete() {
+		return exponentText != null;
+	}
+
+	public boolean signBitComplete() {
+		return signBit != null;
+	}
+
+	public void allowExponentCursor() {
+		if(exponentAddr != null) {
+			exponentAddr.setShowCursor(true);
+		}
+	}
+
+	public void disableAdderCursor() {
+		if(exponentAddr != null) {
+			exponentAddr.setShowCursor(false);
+		}
+	}
+
+	public KeybindDisplay getKeyBindDisplay() {
+		return kbDisplay;
+	}
+
+	public void makeSeedRandom() {
+		rng = new Random();
+	}
+	
+	
+	
+	
+	
 
 }

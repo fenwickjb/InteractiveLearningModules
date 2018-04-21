@@ -359,4 +359,25 @@ public class DrawableString {
 		bmFont = colorSource.bmFont;
 	}
 
+	public void scaleToScreen(boolean scaleToOneFirst) {
+		if(scaleToOneFirst) {
+			this.setScale(1, 1);
+		}
+		
+		float width = Gdx.graphics.getWidth();
+		
+		
+		//adding constant float to exaggerate true size of text,
+		//this should give a little bit extra space on the sides
+		float textSize = this.width() + 10f; 
+		
+		//do nothing if text size
+		if(textSize < width) {
+			return;
+		}
+		
+		float ratio = width / textSize;
+		this.setScale(ratio, ratio);
+	}
+
 }

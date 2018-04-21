@@ -82,6 +82,7 @@ public class BinaryAdder extends Entity {
 	private float scaleY;
 	private boolean colorAnswer;
 	private boolean userCloseUserTypePosition = false;
+	private boolean showCursor = true;
 
 	public BinaryAdder(int number, int addition, float x, float y, boolean start) {
 		this(Integer.toBinaryString(number),
@@ -742,7 +743,7 @@ public class BinaryAdder extends Entity {
 	}
 
 	private boolean shouldDrawCursor() {
-		if (state == State.START || state == State.DONE) return false;
+		if (state == State.START || state == State.DONE || !showCursor) return false;
 
 		if (timer.timerUp(cursorTimerKey)) {
 			drawCursor = !drawCursor;
@@ -822,5 +823,10 @@ public class BinaryAdder extends Entity {
 
 	public DrawableCharBuffer getAdditionObject() {
 		return additionDS;
+	}
+
+	public void setShowCursor(boolean b) {
+		this.showCursor = b;
+		
 	}
 }

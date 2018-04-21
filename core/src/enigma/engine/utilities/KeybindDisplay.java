@@ -114,7 +114,7 @@ public class KeybindDisplay extends Entity implements Touchable{
 	public void logic() {
 		background.logic();
 		
-		io();
+		io_private();
 		
 		//if background moved (ie it lerped), then update accordingly
 		//float comparisons are risky, this is really checking if there is any different bit pattern, 
@@ -132,7 +132,8 @@ public class KeybindDisplay extends Entity implements Touchable{
 		}
 	}
 
-	private void io() {
+	
+	private void io_private() {
 		if (Gdx.input.isKeyJustPressed(Input.Keys.SPACE)) {
 			if(hidden) {
 				background.setInterpolatePoint(displayX, displayY);
